@@ -55,7 +55,7 @@
   <a class="back-btn" href="./index.html">← 목록으로</a>
 
   <header>
-    <div class="tag">바이오 생체유체역학 · Hemorheology (by 남정훈 교수)</div>
+    <div class="tag">생체유체 10주차 · Hemorheology</div>
     <h1>Blood Viscosity Explorer</h1>
     <p>전단속도(Shear Rate)에 따른 혈액 점도 변화 — 비뉴턴 유체 특성 체험</p>
   </header>
@@ -289,117 +289,242 @@
   }
 
   // ── RBC 애니메이션 ──
+  let rbcW = 600, rbcH = 160;
+
+  function initRBC() {
+    const canvas = document.getElementById('rbcCanvas');
+    rbcW = canvas.parentElement.offsetWidth || 600;
+    rbcH = 160;
+    canvas.width = rbcW;
+    canvas.height = rbcH;
+  }
+
+  // 위치(r/R: 0=중심, 1=벽면)에 따른 국소 전단속도 비율
+  // Poiseuille: dv/dr ∝ r/R → 벽면=1, 중심=0
+  function localShear(rNorm) {
+    return Math.abs(rNorm); // 0(중심) ~ 1(벽면)
+  }
+
+  // 전단속도 × 위치전단 → 국소 변형도
+  function localDeform(rNorm, srGlobal) {
+    const ls = localShear(rNorm);          // 위치별 전단 비율
+    return Math.min(ls * srGlobal / 150, 1); // 0 ~ 1
+  }
+
   function drawRBC() {
     const canvas = document.getElementById('rbcCanvas');
-    const W = canvas.parentElement.offsetWidth || 600;
-    const H = 160;
-    canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
+    const W = rbcW, H = rbcH;
 
-    ctx.fillStyle = '#1c2330';
+    const wallH  = 18;
+    const top    = wallH;
+    const bot    = H - wallH;
+    const midY   = (top + bot) / 2;
+    const lumenH = bot - top;
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#0d1117';
     ctx.fillRect(0, 0, W, H);
 
     // 혈관 벽
     ctx.fillStyle = '#30363d';
-    ctx.fillRect(0, 0, W, 20);
-    ctx.fillRect(0, H - 20, W, 20);
+    ctx.fillRect(0, 0, W, wallH);
+    ctx.fillRect(0, bot, W, wallH);
+    ctx.fillStyle = '#1c2330';
+    ctx.fillRect(0, top, W, lumenH);
 
-    const zone = srVal < 20 ? 'low' : srVal < 100 ? 'mid' : 'high';
+    // 클리핑
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, top + 1, W, lumenH - 2);
+    ctx.clip();
 
-    // 혈류 화살표
-    const arrowSpeed = zone === 'high' ? 3 : zone === 'mid' ? 2 : 1;
-    ctx.strokeStyle = '#30363d'; ctx.lineWidth = 0.5;
-    for (let y = 40; y < H - 20; y += 20) {
-      const ratio = 1 - Math.pow((y - H/2) / (H/2 - 20), 2);
-      const len = ratio * arrowSpeed * 18;
-      ctx.strokeStyle = `rgba(88,166,255,${0.15 + ratio * 0.15})`;
-      ctx.beginPath(); ctx.moveTo(10, y); ctx.lineTo(10 + len, y); ctx.stroke();
-    }
+    // ── 파라미터 ──
+    // Hct → x 간격 (높을수록 촘촘)
+    const xSpacing = Math.max(50 - (hctVal - 20) * 0.64, 18);
+    // y 행: 내강을 균등 분할
+    const ySpacing = 15;
+    const nRows    = Math.max(Math.floor(lumenH / ySpacing), 2);
 
+    // 응집도 + 전단속도 → zone
+    const aggThresh = 15 + (aggVal - 1) * 10;
+    const zone = srVal < aggThresh ? 'low'
+               : srVal < aggThresh * 5 ? 'mid'
+               : 'high';
+
+    // Hct → 색상
+    const rbcFill  = hctVal > 55 ? '#8e1a13' : hctVal > 40 ? '#a93226' : '#c0392b';
+    const rbcEdge  = hctVal > 55 ? '#c0392b' : hctVal > 40 ? '#e74c3c' : '#f1948a';
+    const dimple   = '#6e1008';
+
+    // 이동 속도 (왼→오)
+    const baseSpeed = zone === 'high' ? 2.0 : zone === 'mid' ? 1.1 : 0.45;
+
+    // 행별 y위치 & 정규화 r (0=중심, 1=벽면)
+    const rows = Array.from({length: nRows}, (_, ri) => {
+      const y    = top + ySpacing * 0.5 + ri * ySpacing;
+      const rNorm = (y - midY) / (lumenH / 2); // -1 ~ +1
+      return { y, rNorm };
+    });
+
+    // ── LOW: Rouleaux ──
     if (zone === 'low') {
-      // 연전(Rouleaux) 형성 — 뭉쳐있는 적혈구
-      const groups = [
-        {x: 80,  y: 70,  n: 4},
-        {x: 200, y: 90,  n: 5},
-        {x: 340, y: 65,  n: 3},
-        {x: 460, y: 85,  n: 4},
-        {x: 570, y: 70,  n: 3},
-      ];
-      groups.forEach(g => {
-        const gx = ((g.x - rbcOffset * 0.3) % (W + 60)) - 30;
-        for (let i = 0; i < g.n; i++) {
-          const rx = gx + i * 14;
-          const ry = g.y;
-          ctx.beginPath();
-          ctx.ellipse(rx, ry, 10, 6, 0, 0, Math.PI * 2);
-          ctx.fillStyle = '#c0392b';
-          ctx.fill();
-          ctx.strokeStyle = '#e74c3c';
-          ctx.lineWidth = 0.8;
-          ctx.stroke();
+      const grpSize    = Math.round(2 + aggVal * 0.9);
+      const grpSpacing = xSpacing * grpSize * 1.4;
+      const nGroups    = Math.ceil(W / grpSpacing) + 3;
+
+      rows.forEach(({ y: baseY, rNorm }, ri) => {
+        // 벽면 근처일수록 약간 변형 (응집체도 조금 납작)
+        const ld     = localDeform(rNorm, srVal * 0.3); // low에서는 변형 최소
+        const rx     = 9  + ld * 3;
+        const ry     = 6  - ld * 2;
+        const rowOff = ri * xSpacing * 0.52;
+
+        for (let g = 0; g < nGroups; g++) {
+          let gx = (g * grpSpacing + rbcOffset * baseSpeed + rowOff) % (W + grpSpacing * 2);
+          if (gx > W + grpSpacing) gx -= (W + grpSpacing * 2);
+
+          for (let i = 0; i < grpSize; i++) {
+            const cellY = baseY + (i - (grpSize - 1) / 2) * (ry * 2 + 1.5);
+            ctx.save();
+            ctx.translate(gx, cellY);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+            ctx.fillStyle = rbcFill; ctx.fill();
+            ctx.strokeStyle = rbcEdge; ctx.lineWidth = 0.8; ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(0, 0, rx * 0.4, ry * 0.45, 0, 0, Math.PI * 2);
+            ctx.fillStyle = dimple; ctx.fill();
+            ctx.restore();
+          }
         }
       });
-      ctx.fillStyle = '#f8514966';
-      ctx.font = '11px Space Grotesk, monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('Rouleaux 형성 → 점도 ↑', W / 2, H - 26);
-      ctx.textAlign = 'left';
 
+    // ── MID: 분산 중 ──
     } else if (zone === 'mid') {
-      // 분산되는 중
-      const cells = Array.from({length: 14}, (_, i) => ({
-        x: 50 + i * 44,
-        y: 55 + Math.sin(i * 1.3) * 28,
-        angle: (i % 3 - 1) * 0.3,
-      }));
-      cells.forEach(c => {
-        const cx = ((c.x - rbcOffset * 0.6) % (W + 50)) - 25;
-        ctx.save();
-        ctx.translate(cx, c.y);
-        ctx.rotate(c.angle);
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 11, 7, 0, 0, Math.PI * 2);
-        ctx.fillStyle = '#c0392b';
-        ctx.fill();
-        ctx.strokeStyle = '#e74c3c';
-        ctx.lineWidth = 0.8;
-        ctx.stroke();
-        ctx.restore();
-      });
-      ctx.fillStyle = '#d2992244';
-      ctx.font = '11px Space Grotesk, monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('Rouleaux 분산 중 → 점도 감소', W / 2, H - 26);
-      ctx.textAlign = 'left';
+      const nCols      = Math.ceil(W / xSpacing) + 3;
+      const spreadBase = (1 / aggVal) * 0.6;
 
-    } else {
-      // 고전단: 완전 분산 + 변형
-      const cells = Array.from({length: 18}, (_, i) => ({
-        x: 30 + i * 34,
-        y: 50 + Math.sin(i * 0.9 + rbcOffset * 0.02) * 30,
-      }));
-      cells.forEach(c => {
-        const cx = ((c.x - rbcOffset * 1.2) % (W + 40)) - 20;
-        ctx.save();
-        ctx.translate(cx, c.y);
-        ctx.rotate(0.25);
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 13, 5, 0, 0, Math.PI * 2);
-        ctx.fillStyle = '#c0392b';
-        ctx.fill();
-        ctx.strokeStyle = '#e74c3c';
-        ctx.lineWidth = 0.8;
-        ctx.stroke();
-        ctx.restore();
+      rows.forEach(({ y: baseY, rNorm }, ri) => {
+        // 벽면 근처 → 더 많이 변형·기울어짐
+        const ld    = localDeform(rNorm, srVal);
+        const rx    = 9  + ld * 5;
+        const ry    = 6  - ld * 3;
+        const tilt  = ld * 0.25;
+        // 포물선 속도: 중심일수록 빠름 (1-rNorm²)
+        const vLocal = baseSpeed * (1 - rNorm * rNorm);
+        const rowOff = ri * xSpacing * 0.52;
+
+        for (let c = 0; c < nCols; c++) {
+          let cx = (c * xSpacing + rbcOffset * vLocal + rowOff) % (W + xSpacing * 2);
+          if (cx > W + xSpacing) cx -= (W + xSpacing * 2);
+          // 각도: 벽면일수록 더 기울어짐 (대칭)
+          const angle = -Math.sign(rNorm) * tilt + Math.sin(c * 1.9) * spreadBase * (1 - ld);
+          ctx.save();
+          ctx.translate(cx, baseY);
+          ctx.rotate(angle);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+          ctx.fillStyle = rbcFill; ctx.fill();
+          ctx.strokeStyle = rbcEdge; ctx.lineWidth = 0.8; ctx.stroke();
+          if (ld < 0.5) { // 변형 적을 때만 오목 표시
+            ctx.beginPath();
+            ctx.ellipse(0, 0, rx * 0.4, ry * 0.45, 0, 0, Math.PI * 2);
+            ctx.fillStyle = dimple; ctx.fill();
+          }
+          ctx.restore();
+        }
       });
-      ctx.fillStyle = '#3fb95044';
-      ctx.font = '11px Space Grotesk, monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('완전 분산 + 변형·정렬 → 점도 최소', W / 2, H - 26);
-      ctx.textAlign = 'left';
+
+
+    // ── HIGH: 완전 변형 + CFL ──
+    } else {
+      const nCols = Math.ceil(W / xSpacing) + 3;
+
+      // CFL 두께: 전단속도 높을수록 두꺼워짐 (2px ~ 10px)
+      const cflThick = Math.min(2 + (srVal - 100) / 200 * 8, 10);
+
+      // CFL 영역 표시 (벽면 근처 투명 레이어)
+      // 위쪽 CFL
+      ctx.fillStyle = 'rgba(88,166,255,0.07)';
+      ctx.fillRect(0, top + 1, W, cflThick);
+      // 아래쪽 CFL
+      ctx.fillRect(0, bot - cflThick - 1, W, cflThick);
+
+      // CFL 경계선 (점선)
+      ctx.strokeStyle = 'rgba(88,166,255,0.35)';
+      ctx.lineWidth = 0.8;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(0, top + cflThick);
+      ctx.lineTo(W, top + cflThick);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, bot - cflThick);
+      ctx.lineTo(W, bot - cflThick);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // CFL 레이블
+      ctx.fillStyle = 'rgba(88,166,255,0.6)';
+      ctx.font = '9px Space Grotesk, monospace';
+      ctx.fillText(`CFL ~${cflThick.toFixed(1)}px`, 4, top + cflThick - 2);
+      ctx.fillText(`CFL ~${cflThick.toFixed(1)}px`, 4, bot - cflThick + 9);
+
+      // 적혈구 그리기 (CFL 안쪽에만)
+      // CFL 내부 경계 y (실제 적혈구 없는 영역)
+      const cflTop = top + cflThick;
+      const cflBot = bot - cflThick;
+
+      rows.forEach(({ y: baseY, rNorm }, ri) => {
+        // CFL 안에 들어가는 행은 건너뜀
+        if (baseY < cflTop + 2 || baseY > cflBot - 2) return;
+
+        const ld     = localDeform(rNorm, srVal);
+        const rx     = 9  + ld * 7;
+        const ry     = 6  - ld * 4;
+        const tilt   = -Math.sign(rNorm) * ld * 0.22;
+        const vLocal = baseSpeed * (1 - rNorm * rNorm);
+        const rowOff = ri * xSpacing * 0.52;
+
+        for (let c = 0; c < nCols; c++) {
+          let cx = (c * xSpacing + rbcOffset * vLocal + rowOff) % (W + xSpacing * 2);
+          if (cx > W + xSpacing) cx -= (W + xSpacing * 2);
+          ctx.save();
+          ctx.translate(cx, baseY);
+          ctx.rotate(tilt);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+          ctx.fillStyle = rbcFill; ctx.fill();
+          ctx.strokeStyle = rbcEdge; ctx.lineWidth = 0.8; ctx.stroke();
+          ctx.restore();
+        }
+      });
     }
 
-    rbcOffset += (zone === 'high' ? 1.8 : zone === 'mid' ? 1.0 : 0.5);
+    // 클리핑 해제
+    ctx.restore();
+
+    // ── 레이블 ──
+    ctx.font = '500 11px Space Grotesk, monospace';
+    ctx.textAlign = 'center';
+    if (zone === 'low') {
+      ctx.fillStyle = 'rgba(248,81,73,0.9)';
+      ctx.fillText(`Rouleaux 형성 — Agg ${aggVal.toFixed(1)}, Hct ${hctVal}% → 점도 ↑↑`, W/2, bot - 3);
+    } else if (zone === 'mid') {
+      ctx.fillStyle = 'rgba(210,153,34,0.9)';
+      ctx.fillText(`분산·변형 중 — 벽면 전단 ↑, 중심 전단 ↓ (대칭)`, W/2, bot - 3);
+    } else {
+      const cflThick2 = Math.min(2 + (srVal - 100) / 200 * 8, 10);
+      ctx.fillStyle = 'rgba(63,185,80,0.9)';
+      ctx.fillText(`완전 변형·정렬 + CFL(${cflThick2.toFixed(1)}px) — 벽면 무세포층 → 겉보기 점도 ↓`, W/2, bot - 3);
+    }
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#484f58';
+    ctx.font = '10px Space Grotesk, monospace';
+    ctx.fillText(`γ̇=${srVal} s⁻¹  Hct=${hctVal}%  Agg=${aggVal.toFixed(1)}`, 6, H - 4);
+
+    rbcOffset += baseSpeed;
     rbcAnimId = requestAnimationFrame(drawRBC);
   }
 
@@ -409,6 +534,7 @@
   );
 
   updateAll();
+  initRBC();
   drawRBC();
 </script>
 </body>
