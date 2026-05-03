@@ -446,7 +446,7 @@
 <a class="back-btn" href="./index.html">← 목록으로</a>
 
 <header>
-  <div class="tag">바이오 생체유체역학 · Hemodynamics (by 남정훈 교수)</div>
+  <div class="tag"> 바이오 생체유체역학 · Hemodynamics (by 남정훈 교수)</div>
   <h1 class="eng">Flow Rate Simulator</h1>
   <p>Q = πd⁴ΔP / 128μL — 슬라이더로 직접 체험하고 퀴즈로 확인</p>
 </header>
@@ -871,24 +871,47 @@ function drawStenosis(sten, qRatio) {
   const R0 = H * 0.28;
   const stenFrac = sten / 100;
   const narrowR = R0 * Math.sqrt(1 - stenFrac);
-  const narrowX = W * 0.55;
-  const narrowW = W * 0.12;
+  const narrowX = W * 0.52;
+  // 협착 폭: 좁을수록 더 완만하게
+  const narrowW = W * 0.18;
+  // 베지어 제어점 거리: 자연스러운 S커브
+  const cp = narrowW * 0.55;
 
+  // ── 위쪽 벽 경로 ──
   const topPath = new Path2D();
   topPath.moveTo(0, cy - R0);
   topPath.lineTo(narrowX - narrowW, cy - R0);
-  topPath.quadraticCurveTo(narrowX, cy - R0, narrowX, cy - narrowR);
-  topPath.quadraticCurveTo(narrowX, cy - R0, narrowX + narrowW, cy - R0);
+  // 좌측 경사: S커브로 부드럽게 좁아짐
+  topPath.bezierCurveTo(
+    narrowX - narrowW + cp, cy - R0,
+    narrowX - cp * 0.3,     cy - narrowR,
+    narrowX,                cy - narrowR
+  );
+  // 우측 경사: S커브로 부드럽게 넓어짐
+  topPath.bezierCurveTo(
+    narrowX + cp * 0.3,     cy - narrowR,
+    narrowX + narrowW - cp, cy - R0,
+    narrowX + narrowW,      cy - R0
+  );
   topPath.lineTo(W, cy - R0);
   topPath.lineTo(W, cy - R0 - 20);
   topPath.lineTo(0, cy - R0 - 20);
   topPath.closePath();
 
+  // ── 아래쪽 벽 경로 ──
   const botPath = new Path2D();
   botPath.moveTo(0, cy + R0);
   botPath.lineTo(narrowX - narrowW, cy + R0);
-  botPath.quadraticCurveTo(narrowX, cy + R0, narrowX, cy + narrowR);
-  botPath.quadraticCurveTo(narrowX, cy + R0, narrowX + narrowW, cy + R0);
+  botPath.bezierCurveTo(
+    narrowX - narrowW + cp, cy + R0,
+    narrowX - cp * 0.3,     cy + narrowR,
+    narrowX,                cy + narrowR
+  );
+  botPath.bezierCurveTo(
+    narrowX + cp * 0.3,     cy + narrowR,
+    narrowX + narrowW - cp, cy + R0,
+    narrowX + narrowW,      cy + R0
+  );
   botPath.lineTo(W, cy + R0);
   botPath.lineTo(W, cy + R0 + 20);
   botPath.lineTo(0, cy + R0 + 20);
@@ -902,13 +925,29 @@ function drawStenosis(sten, qRatio) {
     ctx.fillStyle = 'rgba(192,57,43,0.5)';
     const plaque = new Path2D();
     plaque.moveTo(narrowX - narrowW, cy - R0);
-    plaque.quadraticCurveTo(narrowX, cy - R0, narrowX, cy - narrowR);
-    plaque.quadraticCurveTo(narrowX, cy - R0, narrowX + narrowW, cy - R0);
+    plaque.bezierCurveTo(
+      narrowX - narrowW + cp, cy - R0,
+      narrowX - cp * 0.3,     cy - narrowR,
+      narrowX,                cy - narrowR
+    );
+    plaque.bezierCurveTo(
+      narrowX + cp * 0.3,     cy - narrowR,
+      narrowX + narrowW - cp, cy - R0,
+      narrowX + narrowW,      cy - R0
+    );
     ctx.fill(plaque);
     const plaque2 = new Path2D();
     plaque2.moveTo(narrowX - narrowW, cy + R0);
-    plaque2.quadraticCurveTo(narrowX, cy + R0, narrowX, cy + narrowR);
-    plaque2.quadraticCurveTo(narrowX, cy + R0, narrowX + narrowW, cy + R0);
+    plaque2.bezierCurveTo(
+      narrowX - narrowW + cp, cy + R0,
+      narrowX - cp * 0.3,     cy + narrowR,
+      narrowX,                cy + narrowR
+    );
+    plaque2.bezierCurveTo(
+      narrowX + cp * 0.3,     cy + narrowR,
+      narrowX + narrowW - cp, cy + R0,
+      narrowX + narrowW,      cy + R0
+    );
     ctx.fill(plaque2);
   }
 
@@ -920,15 +959,26 @@ function drawStenosis(sten, qRatio) {
     const r = -R0 + (2 * R0 * i / numArrows);
     const ratio = r / R0;
     const cyy = cy + r;
-    const v = qRatio * 80 * (1 - ratio * ratio);
-    if (v < 3) continue;
-    const x1 = 20, x2 = x1 + v;
-    ctx.strokeStyle = v > 40 ? '#c0392b' : '#e74c3c';
+    // 정상 유속 기준으로 스케일 고정, qRatio로 상대적 변화만 반영
+    const vNormal = (1 - ratio * ratio) * (narrowX - narrowW - 30);
+    const v = vNormal * Math.min(qRatio, 1);
+    if (v < 6) continue;
+    const x1 = 20;
+    const x2 = x1 + v;
+    ctx.strokeStyle = qRatio < 0.3 ? '#f85149' : qRatio < 0.7 ? '#e74c3c' : '#c0392b';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(x1, cyy);
-    ctx.lineTo(Math.min(x2 - 4, narrowX - narrowW - 4), cyy);
+    ctx.lineTo(Math.min(x2 - 4, narrowX - narrowW - 8), cyy);
     ctx.stroke();
+    // 화살촉
+    const ax = Math.min(x2, narrowX - narrowW - 8);
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.beginPath();
+    ctx.moveTo(ax - 4, cyy - 3);
+    ctx.lineTo(ax, cyy);
+    ctx.lineTo(ax - 4, cyy + 3);
+    ctx.fill();
   }
 
   ctx.fillStyle = '#f85149';
