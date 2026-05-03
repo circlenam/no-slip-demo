@@ -3,385 +3,470 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bernoulli & Stenosis Calculator — 생체유체</title>
+<title>Bernoulli & Stenosis Calculator — 바이오 생체유체역학 (by 남정훈 교수)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
   :root {
     --bg:#0d1117;--surface:#161b22;--surface2:#1c2330;--border:#30363d;
     --blue:#58a6ff;--blue-dim:#1f3a5a;--green:#3fb950;--green-dim:#1a3a22;
-    --amber:#d29922;--amber-dim:#3a2e10;--coral:#f0997b;--coral-dim:#3d1f10;
-    --purple:#bc8cff;--purple-dim:#2d1f4a;--red:#f85149;--red-dim:#3d1010;
+    --amber:#d29922;--amber-dim:#3a2e10;--red:#f85149;--red-dim:#3d1a1a;
+    --coral:#f0997b;--coral-dim:#3d1f10;
     --text:#e6edf3;--text-dim:#8b949e;--text-dimmer:#484f58;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;padding:2rem 1rem 4rem;}
-  .container{max-width:720px;margin:0 auto;}
-
-  /* ── Header ── */
-  header{text-align:center;margin-bottom:2.5rem;padding-bottom:1.8rem;border-bottom:1px solid var(--border);}
-  .logo{width:52px;height:52px;background:var(--blue-dim);border:1px solid var(--blue);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:700;color:var(--blue);}
-  header h1{font-family:'Space Grotesk',sans-serif;font-size:1.45rem;font-weight:700;margin-bottom:.35rem;}
-  header .sub{font-size:.8rem;color:var(--text-dim);line-height:1.7;}
-  .badge{display:inline-block;font-size:.68rem;font-weight:600;padding:2px 9px;border-radius:20px;font-family:'Space Grotesk',sans-serif;margin-top:.5rem;}
-  .badge-blue{background:var(--blue-dim);color:var(--blue);}
-  .badge-amber{background:var(--amber-dim);color:var(--amber);}
-
-  /* ── Section title ── */
-  .sec-title{font-size:.72rem;font-weight:600;color:var(--text-dimmer);text-transform:uppercase;letter-spacing:.08em;font-family:'Space Grotesk',sans-serif;margin-bottom:.8rem;padding-left:2px;}
-
-  /* ── Card ── */
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.4rem 1.5rem;margin-bottom:1.2rem;}
-  .card-title{font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
-
-  /* ── Slider rows ── */
-  .slider-row{display:grid;grid-template-columns:1fr 110px;align-items:center;gap:.6rem;margin-bottom:.85rem;}
-  .slider-label{font-size:.82rem;color:var(--text-dim);}
-  .slider-label span{color:var(--text);font-weight:500;}
-  input[type=range]{width:100%;accent-color:var(--blue);cursor:pointer;height:4px;}
-  .val-box{text-align:right;font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:600;color:var(--blue);}
-
-  /* ── Vessel SVG area ── */
-  .vessel-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.2rem 1rem;margin-bottom:1.2rem;text-align:center;}
-  #vesselSvg{width:100%;max-width:560px;height:140px;}
-
-  /* ── Result grid ── */
-  .result-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1rem;}
-  @media(max-width:420px){.result-grid{grid-template-columns:1fr;}}
-  .result-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;}
-  .result-box .r-label{font-size:.72rem;color:var(--text-dim);margin-bottom:.3rem;font-family:'Space Grotesk',sans-serif;text-transform:uppercase;letter-spacing:.05em;}
-  .result-box .r-value{font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:700;}
-  .result-box .r-unit{font-size:.75rem;color:var(--text-dim);margin-left:3px;}
-  .result-box .r-sub{font-size:.72rem;color:var(--text-dimmer);margin-top:.2rem;}
-  .clr-blue{color:var(--blue);}
-  .clr-amber{color:var(--amber);}
-  .clr-green{color:var(--green);}
-  .clr-coral{color:var(--coral);}
-  .clr-red{color:var(--red);}
-
-  /* ── Warning banner ── */
-  .warn{display:flex;align-items:flex-start;gap:.7rem;background:var(--red-dim);border:1px solid var(--red);border-radius:10px;padding:.9rem 1rem;margin-top:1rem;font-size:.8rem;line-height:1.6;color:#f8a09e;}
-  .warn.hide{display:none;}
-  .warn-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px;}
-
-  /* ── Formula block ── */
-  .formula-block{background:var(--surface2);border-left:3px solid var(--purple);border-radius:0 8px 8px 0;padding:.9rem 1.1rem;margin:1rem 0;font-family:'Space Grotesk',sans-serif;font-size:.83rem;color:var(--text-dim);line-height:2;}
-  .formula-block .f-eq{color:var(--purple);font-weight:600;font-size:.9rem;}
-
-  /* ── Pressure bar ── */
-  .bar-wrap{margin-top:1rem;}
-  .bar-label-row{display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-dim);margin-bottom:.4rem;font-family:'Space Grotesk',sans-serif;}
-  .bar-track{background:var(--surface2);border-radius:6px;height:18px;overflow:hidden;position:relative;border:1px solid var(--border);}
-  .bar-fill{height:100%;border-radius:6px;transition:width .4s ease;}
-
-  /* ── Tabs ── */
-  .tabs{display:flex;gap:6px;margin-bottom:1.2rem;}
-  .tab{font-size:.78rem;font-weight:600;font-family:'Space Grotesk',sans-serif;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;transition:all .2s;}
-  .tab.active{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);}
-
-  /* ── Info table ── */
-  .info-table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:.8rem;}
-  .info-table th{text-align:left;padding:.5rem .7rem;background:var(--surface2);color:var(--text-dim);font-family:'Space Grotesk',sans-serif;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);}
-  .info-table td{padding:.55rem .7rem;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.5;}
-  .info-table tr:last-child td{border-bottom:none;}
-
-  /* ── Back link ── */
-  .back{display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text-dim);text-decoration:none;margin-bottom:1.8rem;transition:color .2s;}
-  .back:hover{color:var(--blue);}
-
-  footer{text-align:center;font-size:.72rem;color:var(--text-dimmer);padding-top:1.5rem;border-top:1px solid var(--border);line-height:1.8;margin-top:2rem;}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;padding:1.5rem 1rem 3rem;}
+  .container{max-width:680px;margin:0 auto;}
+  header{text-align:center;margin-bottom:1.8rem;}
+  .tag{display:inline-block;background:var(--coral-dim);color:var(--coral);font-size:.72rem;font-weight:600;padding:3px 12px;border-radius:20px;margin-bottom:.6rem;font-family:'Space Grotesk',sans-serif;letter-spacing:.04em;}
+  header h1{font-family:'Space Grotesk',sans-serif;font-size:1.6rem;font-weight:700;margin-bottom:.3rem;}
+  header p{font-size:.82rem;color:var(--text-dim);}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem 1.3rem;margin-bottom:1rem;}
+  .card-title{font-size:.72rem;font-weight:600;color:var(--text-dimmer);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem;font-family:'Space Grotesk',sans-serif;}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem;}
+  .stat-grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1rem;}
+  .stat{background:var(--surface2);border-radius:8px;padding:.9rem 1rem;text-align:center;}
+  .stat .s-label{font-size:.72rem;color:var(--text-dimmer);margin-bottom:4px;}
+  .stat .s-val{font-family:'Space Grotesk',sans-serif;font-size:1.3rem;font-weight:700;}
+  .stat .s-unit{font-size:.7rem;color:var(--text-dimmer);margin-top:2px;}
+  .slider-row{display:flex;align-items:center;gap:10px;margin-bottom:.8rem;}
+  .slider-label{font-size:.8rem;color:var(--text-dim);min-width:115px;}
+  .slider-label .sym{font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--text);}
+  input[type=range]{flex:1;height:4px;border-radius:2px;outline:none;cursor:pointer;-webkit-appearance:none;background:var(--border);}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--coral);cursor:pointer;}
+  .slider-val{font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:600;min-width:72px;text-align:right;color:var(--coral);}
+  .canvas-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1rem;}
+  canvas{display:block;width:100%;background:var(--surface2);}
+  .formula-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1.2rem;margin-bottom:1rem;text-align:center;}
+  .formula-box .eq{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:600;color:var(--coral);}
+  .formula-box .sub{font-size:.75rem;color:var(--text-dimmer);margin-top:5px;}
+  .info-box{border-left:3px solid var(--coral);border-radius:0;padding:.9rem 1.1rem;background:var(--surface2);font-size:.82rem;color:var(--text-dim);line-height:1.8;margin-bottom:1rem;}
+  .info-box strong{color:var(--text);}
+  .status-bar{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;margin-bottom:1rem;}
+  .status-label{font-size:.78rem;color:var(--text-dim);}
+  .status-val{font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:700;}
+  .step-box{background:var(--surface2);border-radius:8px;padding:.9rem 1.1rem;margin-bottom:.6rem;font-size:.82rem;color:var(--text-dim);line-height:1.9;}
+  .step-box .step-num{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--coral);margin-right:6px;}
+  .step-box .result{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--text);}
+  .back-btn{display:inline-block;margin-bottom:1rem;font-size:.8rem;color:var(--text-dim);text-decoration:none;border:1px solid var(--border);border-radius:8px;padding:5px 14px;transition:all .2s;}
+  .back-btn:hover{color:var(--text);border-color:var(--text-dim);}
+  footer{text-align:center;font-size:.72rem;color:var(--text-dimmer);margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);}
 </style>
 </head>
 <body>
 <div class="container">
-  <a class="back" href="./index.html">← 강의자료 목록으로</a>
+
+  <a class="back-btn" href="./index.html">← 목록으로</a>
 
   <header>
-    <div class="logo">📐</div>
+    <div class="tag">바이오 생체유체역학 · Hemodynamics (by 남정훈)</div>
     <h1>Bernoulli &amp; Stenosis Calculator</h1>
-    <p class="sub">베르누이 방정식으로 협착부(stenosis) 혈압·유속 변화를 실시간으로 계산합니다<br>
-    재능대학교 바이오테크과 — 생체유체 10주차</p>
-    <span class="badge badge-blue">시뮬레이터</span>
-    <span class="badge badge-amber">협착 계산기</span>
+    <p>베르누이 방정식으로 협착부 혈압을 실시간 계산하고 시각화</p>
   </header>
 
-  <!-- ══ 원리 요약 ══ -->
-  <div class="sec-title">베르누이 방정식 원리</div>
-  <div class="card" style="margin-bottom:1.4rem;">
-    <div class="card-title">🔬 적용 원리</div>
-    <div class="formula-block">
-      <div class="f-eq">P₁ + ½ρv₁² = P₂ + ½ρv₂²</div>
-      연속 방정식: A₁v₁ = A₂v₂ → v₂ = v₁ × (d₁/d₂)²<br>
-      압력강하: ΔP = ½ρ(v₂² − v₁²)<br>
-      <span style="color:var(--text-dimmer);font-size:.78rem;">ρ(혈액 밀도) ≈ 1060 kg/m³ | 단순화된 비점성·정상류 모델</span>
-    </div>
-    <p style="font-size:.8rem;color:var(--text-dim);line-height:1.8;">
-      혈관이 <strong style="color:var(--coral);">협착</strong>되면 단면적이 줄어 유속이 빨라지고, 베르누이 원리에 의해 그 지점의 <strong style="color:var(--coral);">압력이 떨어집니다.</strong>
-      임상에서는 이 압력 강하(ΔP)를 심초음파 도플러로 측정해 협착 중증도를 평가합니다.
-    </p>
+  <!-- 베르누이 공식 -->
+  <div class="formula-box">
+    <div class="eq">P₁ + ½ρV₁² = P₂ + ½ρV₂²</div>
+    <div class="sub">에너지 보존 &nbsp;|&nbsp; 연속 방정식: A₁V₁ = A₂V₂ &nbsp;|&nbsp; ρ(혈액) = 1,050 kg/m³</div>
   </div>
 
-  <!-- ══ 시뮬레이터 ══ -->
-  <div class="sec-title">인터랙티브 시뮬레이터</div>
+  <!-- 슬라이더 -->
   <div class="card">
-    <div class="card-title">⚙️ 파라미터 설정</div>
-
+    <div class="card-title">조건 설정</div>
     <div class="slider-row">
-      <div class="slider-label">정상 혈관 직경 d₁ <span id="lbl_d1">5.0</span> mm</div>
-      <div class="val-box" id="box_d1">5.0 mm</div>
+      <span class="slider-label"><span class="sym">P₁</span> 근위부 혈압</span>
+      <input type="range" id="sl-p1" min="60" max="200" value="120" step="1">
+      <span class="slider-val" id="lbl-p1">120 mmHg</span>
     </div>
-    <input type="range" id="sl_d1" min="2" max="10" step="0.1" value="5">
-
-    <div class="slider-row" style="margin-top:.9rem;">
-      <div class="slider-label">협착부 직경 d₂ <span id="lbl_d2">2.5</span> mm</div>
-      <div class="val-box clr-coral" id="box_d2">2.5 mm</div>
+    <div class="slider-row">
+      <span class="slider-label"><span class="sym">V₁</span> 근위부 유속</span>
+      <input type="range" id="sl-v1" min="10" max="150" value="50" step="1">
+      <span class="slider-val" id="lbl-v1">50 cm/s</span>
     </div>
-    <input type="range" id="sl_d2" min="0.5" max="9.9" step="0.1" value="2.5">
-
-    <div class="slider-row" style="margin-top:.9rem;">
-      <div class="slider-label">근위부 혈류 속도 v₁ <span id="lbl_v1">0.5</span> m/s</div>
-      <div class="val-box" id="box_v1">0.5 m/s</div>
-    </div>
-    <input type="range" id="sl_v1" min="0.1" max="2.0" step="0.05" value="0.5">
-
-    <div class="slider-row" style="margin-top:.9rem;">
-      <div class="slider-label">근위부 압력 P₁ <span id="lbl_p1">120</span> mmHg</div>
-      <div class="val-box" id="box_p1">120 mmHg</div>
-    </div>
-    <input type="range" id="sl_p1" min="60" max="200" step="1" value="120">
-  </div>
-
-  <!-- ══ 혈관 시각화 ══ -->
-  <div class="vessel-wrap">
-    <svg id="vesselSvg" viewBox="0 0 560 140" xmlns="http://www.w3.org/2000/svg"></svg>
-  </div>
-
-  <!-- ══ 결과 ══ -->
-  <div class="result-grid">
-    <div class="result-box">
-      <div class="r-label">협착부 유속 v₂</div>
-      <div class="r-value clr-coral" id="res_v2">—</div>
-      <div class="r-sub" id="res_v2_sub"></div>
-    </div>
-    <div class="result-box">
-      <div class="r-label">압력 강하 ΔP</div>
-      <div class="r-value clr-amber" id="res_dp">—</div>
-      <div class="r-sub" id="res_dp_sub"></div>
-    </div>
-    <div class="result-box">
-      <div class="r-label">협착부 압력 P₂</div>
-      <div class="r-value clr-blue" id="res_p2">—</div>
-      <div class="r-sub" id="res_p2_sub"></div>
-    </div>
-    <div class="result-box">
-      <div class="r-label">협착률 (면적 기준)</div>
-      <div class="r-value clr-green" id="res_sten">—</div>
-      <div class="r-sub" id="res_sten_sub"></div>
+    <div class="slider-row">
+      <span class="slider-label"><span class="sym">협착도</span> Stenosis</span>
+      <input type="range" id="sl-sten" min="0" max="95" value="50" step="1">
+      <span class="slider-val" id="lbl-sten" style="color:var(--red);">50 %</span>
     </div>
   </div>
 
-  <!-- 협착 압력 bar -->
-  <div class="bar-wrap">
-    <div class="bar-label-row">
-      <span>P₂ (협착 후 압력)</span>
-      <span id="bar_label">— mmHg</span>
+  <!-- 핵심 수치 -->
+  <div class="stat-grid">
+    <div class="stat">
+      <div class="s-label">협착부 유속 V₂</div>
+      <div class="s-val" id="v-v2" style="color:var(--amber);">—</div>
+      <div class="s-unit">cm/s</div>
     </div>
-    <div class="bar-track">
-      <div class="bar-fill" id="bar_fill" style="background:var(--blue);width:60%;"></div>
+    <div class="stat">
+      <div class="s-label">협착부 혈압 P₂</div>
+      <div class="s-val" id="v-p2" style="color:var(--coral);">—</div>
+      <div class="s-unit">mmHg</div>
+    </div>
+    <div class="stat">
+      <div class="s-label">압력 손실 ΔP</div>
+      <div class="s-val" id="v-dp" style="color:var(--red);">—</div>
+      <div class="s-unit">mmHg</div>
     </div>
   </div>
 
-  <!-- 경고 배너 -->
-  <div class="warn hide" id="warnBox">
-    <div class="warn-icon">⚠️</div>
-    <div id="warnMsg"></div>
+  <div class="stat-grid-2">
+    <div class="stat">
+      <div class="s-label">면적비 A₁/A₂</div>
+      <div class="s-val" id="v-aratio" style="color:var(--blue);">—</div>
+      <div class="s-unit">배</div>
+    </div>
+    <div class="stat">
+      <div class="s-label">유속비 V₂/V₁</div>
+      <div class="s-val" id="v-vratio" style="color:var(--blue);">—</div>
+      <div class="s-unit">배</div>
+    </div>
   </div>
 
-  <!-- ══ 임상 중증도 분류 ══ -->
-  <div style="margin-top:1.6rem;">
-    <div class="sec-title">임상 협착 중증도 분류 (대동맥판막 기준)</div>
-    <div class="card">
-      <table class="info-table">
-        <thead>
-          <tr>
-            <th>단계</th><th>면적 협착률</th><th>ΔP (mmHg)</th><th>임상 의미</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>경증</td><td>&lt; 50%</td><td>&lt; 20</td><td style="color:var(--green);">정상 범주</td></tr>
-          <tr><td>중등도</td><td>50–75%</td><td>20–40</td><td style="color:var(--amber);">경과 관찰</td></tr>
-          <tr><td>중증</td><td>75–90%</td><td>40–80</td><td style="color:var(--coral);">치료 고려</td></tr>
-          <tr><td>초중증</td><td>&gt; 90%</td><td>&gt; 80</td><td style="color:var(--red);">즉시 치료</td></tr>
-        </tbody>
-      </table>
-      <p style="font-size:.75rem;color:var(--text-dimmer);margin-top:.7rem;">* 단순화된 베르누이 모델. 실제 임상에서는 점도·맥동류·와류 등 추가 보정이 필요합니다.</p>
+  <!-- 혈관 단면 시각화 -->
+  <div class="card">
+    <div class="card-title">협착 혈관 단면 & 압력·속도 분포</div>
+    <div class="canvas-wrap">
+      <canvas id="stenosisCanvas" height="200"></canvas>
     </div>
+    <div class="canvas-wrap">
+      <canvas id="profileCanvas" height="160"></canvas>
+    </div>
+  </div>
+
+  <!-- 단계별 계산 과정 -->
+  <div class="card">
+    <div class="card-title">계산 과정 (단계별)</div>
+    <div class="step-box" id="step1"></div>
+    <div class="step-box" id="step2"></div>
+    <div class="step-box" id="step3"></div>
+    <div class="step-box" id="step4"></div>
+  </div>
+
+  <!-- 임상 상태 -->
+  <div class="status-bar">
+    <span class="status-label">임상 상태</span>
+    <span class="status-val" id="clinical-status">—</span>
+  </div>
+
+  <div class="info-box" id="clinical-comment"></div>
+
+  <div class="info-box">
+    <strong>베르누이 효과 핵심 원리</strong><br>
+    협착으로 단면적이 줄면 → 연속 방정식에 의해 <strong style="color:var(--amber);">유속 증가</strong><br>
+    유속 증가 → 베르누이 방정식에 의해 <strong style="color:var(--coral);">압력 감소</strong><br>
+    협착부 저압 → 혈관 경련(Spasm), 혈전 형성, 심근 허혈 위험
   </div>
 
   <footer>
-    재능대학교 바이오테크과 남정훈 교수 (학과장)<br>
-    생체유체 강의 인터랙티브 자료 — Bernoulli &amp; Stenosis Calculator
+    재능대학교 바이오테크과 (by 남정훈 교수)
   </footer>
 </div>
 
 <script>
-const RHO = 1060; // kg/m3 혈액 밀도
-const MMHG = 133.322; // 1 mmHg = 133.322 Pa
+  const RHO = 1050; // kg/m³
+  const PA_PER_MMHG = 133.322;
 
-const sl_d1=document.getElementById('sl_d1');
-const sl_d2=document.getElementById('sl_d2');
-const sl_v1=document.getElementById('sl_v1');
-const sl_p1=document.getElementById('sl_p1');
+  function calcAll() {
+    const p1_mmhg = parseInt(document.getElementById('sl-p1').value);
+    const v1_cms  = parseInt(document.getElementById('sl-v1').value);
+    const sten    = parseInt(document.getElementById('sl-sten').value);
 
-function fmt(n,dec=1){return n.toFixed(dec);}
+    document.getElementById('lbl-p1').textContent   = p1_mmhg + ' mmHg';
+    document.getElementById('lbl-v1').textContent   = v1_cms  + ' cm/s';
+    document.getElementById('lbl-sten').textContent = sten    + ' %';
 
-function drawVessel(d1mm,d2mm){
-  const svg=document.getElementById('vesselSvg');
-  svg.innerHTML='';
-  const W=560,H=140;
-  const cx=W/2, normR=32, stenR=Math.max(6, normR*(d2mm/d1mm));
-  const transLen=60, stenLen=80;
-  const x1=cx-transLen-stenLen/2, x2=cx-stenLen/2, x3=cx+stenLen/2, x4=cx+transLen+stenLen/2;
+    // 단위 변환
+    const v1   = v1_cms / 100; // m/s
+    const p1   = p1_mmhg * PA_PER_MMHG; // Pa
 
-  // Vessel walls path (top)
-  const topPath=`M 40 ${H/2-normR}
-    L ${x1} ${H/2-normR}
-    Q ${x2} ${H/2-normR} ${x2} ${H/2-stenR}
-    L ${x3} ${H/2-stenR}
-    Q ${x3} ${H/2-normR} ${x4} ${H/2-normR}
-    L ${W-40} ${H/2-normR}`;
-  const botPath=`M 40 ${H/2+normR}
-    L ${x1} ${H/2+normR}
-    Q ${x2} ${H/2+normR} ${x2} ${H/2+stenR}
-    L ${x3} ${H/2+stenR}
-    Q ${x3} ${H/2+normR} ${x4} ${H/2+normR}
-    L ${W-40} ${H/2+normR}`;
+    // 면적비 (협착도 = 단면적 감소율)
+    const aRatio = 1 / (1 - sten / 100); // A1/A2
+    // 연속방정식
+    const v2 = v1 * aRatio; // m/s
 
-  // Lumen fill
-  const lumenPath=`M 40 ${H/2-normR}
-    L ${x1} ${H/2-normR}
-    Q ${x2} ${H/2-normR} ${x2} ${H/2-stenR}
-    L ${x3} ${H/2-stenR}
-    Q ${x3} ${H/2-normR} ${x4} ${H/2-normR}
-    L ${W-40} ${H/2-normR}
-    L ${W-40} ${H/2+normR}
-    L ${x4} ${H/2+normR}
-    Q ${x3} ${H/2+normR} ${x3} ${H/2+stenR}
-    L ${x2} ${H/2+stenR}
-    Q ${x2} ${H/2+normR} ${x1} ${H/2+normR}
-    L 40 ${H/2+normR} Z`;
+    // 베르누이
+    const p2_pa = p1 + 0.5 * RHO * (v1 * v1 - v2 * v2);
+    const p2_mmhg = p2_pa / PA_PER_MMHG;
+    const dp_mmhg = p1_mmhg - p2_mmhg;
 
-  const mk=(tag,attr)=>{const el=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attr).forEach(([k,v])=>el.setAttribute(k,v));return el;};
+    // 표시
+    document.getElementById('v-v2').textContent    = (v2 * 100).toFixed(1);
+    document.getElementById('v-p2').textContent    = p2_mmhg.toFixed(1);
+    document.getElementById('v-dp').textContent    = dp_mmhg.toFixed(1);
+    document.getElementById('v-aratio').textContent = aRatio.toFixed(2);
+    document.getElementById('v-vratio').textContent = aRatio.toFixed(2);
 
-  // gradient
-  const defs=mk('defs',{});
-  const lg=mk('linearGradient',{id:'bloodGrad',x1:'0%',y1:'0%',x2:'100%',y2:'0%'});
-  [{offset:'0%',color:'#8b1a1a'},{offset:'45%',color:'#c0392b'},{offset:'50%',color:'#e74c3c'},{offset:'55%',color:'#c0392b'},{offset:'100%',color:'#8b1a1a'}].forEach(s=>{
-    const stop=mk('stop',{'offset':s.offset,'stop-color':s.color});lg.appendChild(stop);});
-  defs.appendChild(lg);svg.appendChild(defs);
+    // P2 색상
+    const p2El = document.getElementById('v-p2');
+    p2El.style.color = p2_mmhg < 30 ? 'var(--red)' : p2_mmhg < 60 ? 'var(--amber)' : 'var(--coral)';
 
-  const lumen=mk('path',{d:lumenPath,fill:'url(#bloodGrad)',opacity:'0.85'});
-  svg.appendChild(lumen);
+    // ΔP 색상
+    const dpEl = document.getElementById('v-dp');
+    dpEl.style.color = dp_mmhg > 60 ? 'var(--red)' : dp_mmhg > 20 ? 'var(--amber)' : 'var(--green)';
 
-  [topPath,botPath].forEach(d=>{
-    const p=mk('path',{d,fill:'none',stroke:'#58a6ff',strokeWidth:'2.5',strokeLinejoin:'round'});
-    svg.appendChild(p);
-  });
+    // 단계별 계산
+    document.getElementById('step1').innerHTML =
+      `<span class="step-num">① 연속 방정식</span>A₁V₁ = A₂V₂ &nbsp;→&nbsp; V₂ = V₁ × (A₁/A₂) = ${v1_cms} × ${aRatio.toFixed(2)} = <span class="result">${(v2*100).toFixed(1)} cm/s</span>`;
 
-  // stenosis highlight
-  const stenBox=mk('rect',{x:x2,y:H/2-stenR-2,width:x3-x2,height:(stenR+2)*2,fill:'none',stroke:'#f0997b',strokeWidth:'1.5',strokeDasharray:'4 3',rx:'4'});
-  svg.appendChild(stenBox);
+    document.getElementById('step2').innerHTML =
+      `<span class="step-num">② 동압 계산</span>½ρV₁² = ${(0.5*RHO*v1*v1).toFixed(0)} Pa &nbsp;|&nbsp; ½ρV₂² = ${(0.5*RHO*v2*v2).toFixed(0)} Pa`;
 
-  // arrows (flow)
-  const arrowY=H/2;
-  [[100,x1-10,1.0],[cx,cx,1.6],[x4+10,W-60,1.0]].forEach(([ax1,ax2,speed])=>{
-    const color=speed>1.2?'#f0997b':'#58a6ff';
-    const arr=mk('line',{x1:ax1,y1:arrowY,x2:ax2,y2:arrowY,stroke:color,strokeWidth:'1.8',markerEnd:'url(#arr'+speed+')'});
-    svg.appendChild(arr);
-  });
+    document.getElementById('step3').innerHTML =
+      `<span class="step-num">③ 베르누이 적용</span>P₂ = P₁ + ½ρ(V₁²−V₂²) = ${p1_mmhg} + (${((0.5*RHO*(v1*v1-v2*v2))/PA_PER_MMHG).toFixed(1)}) = <span class="result" style="color:${p2_mmhg<30?'var(--red)':'var(--coral)'}">${p2_mmhg.toFixed(1)} mmHg</span>`;
 
-  // arrowhead markers
-  [['arr1.0','#58a6ff'],['arr1.6','#f0997b']].forEach(([id,color])=>{
-    const marker=mk('marker',{id,markerWidth:'8',markerHeight:'8',refX:'6',refY:'3',orient:'auto'});
-    const poly=mk('polygon',{points:'0 0, 6 3, 0 6',fill:color});
-    marker.appendChild(poly);defs.appendChild(marker);
-  });
+    document.getElementById('step4').innerHTML =
+      `<span class="step-num">④ 압력 손실</span>ΔP = P₁ − P₂ = ${p1_mmhg} − ${p2_mmhg.toFixed(1)} = <span class="result">${dp_mmhg.toFixed(1)} mmHg</span>`;
 
-  // labels
-  const lbls=[
-    [70,H/2-normR-10,'P₁ (근위부)','#58a6ff'],
-    [cx,H/2-stenR-16,'협착부','#f0997b'],
-    [W-70,H/2-normR-10,'P₂ (원위부)','#3fb950'],
-  ];
-  lbls.forEach(([lx,ly,text,fill])=>{
-    const t=mk('text',{x:lx,y:ly,'text-anchor':'middle','font-size':'11','font-family':'Space Grotesk, sans-serif',fill});
-    t.textContent=text;svg.appendChild(t);
-  });
-}
+    // 임상 상태
+    const statusEl  = document.getElementById('clinical-status');
+    const commentEl = document.getElementById('clinical-comment');
+    let status, scolor, comment;
 
-function calc(){
-  const d1=parseFloat(sl_d1.value)/1000; // m
-  const d2=parseFloat(sl_d2.value)/1000;
-  const v1=parseFloat(sl_v1.value);
-  const p1_mmhg=parseFloat(sl_p1.value);
+    if (sten < 30) {
+      status = '정상 혈류'; scolor = 'var(--green)';
+      comment = '협착이 경미하여 압력 손실이 거의 없습니다. 임상 증상이 없고 혈류량이 충분합니다.';
+    } else if (sten < 50) {
+      status = '경도 협착'; scolor = 'var(--blue)';
+      comment = '운동 시 심근 산소 수요가 증가할 때 <strong style="color:var(--text);">안정형 협심증(Stable Angina)</strong> 증상이 나타날 수 있습니다.';
+    } else if (sten < 70) {
+      status = '유의한 협착'; scolor = 'var(--amber)';
+      comment = '<strong style="color:var(--text);">불안정형 협심증</strong> 위험 구간입니다. 협착부 압력이 크게 감소하여 심근 관류가 저하됩니다.';
+    } else if (sten < 90) {
+      status = '심각한 협착 ⚠️'; scolor = 'var(--red)';
+      comment = `협착부 혈압이 <strong style="color:var(--red);">${p2_mmhg.toFixed(0)} mmHg</strong>로 급락했습니다. <strong style="color:var(--text);">급성 심근경색(AMI)</strong> 위험이 높습니다. 헤모글로빈-산소 결합이 유지되기 어려운 수준입니다.`;
+    } else {
+      status = '거의 완전 폐색 🚨'; scolor = 'var(--red)';
+      comment = `협착부 혈압 <strong style="color:var(--red);">${p2_mmhg.toFixed(0)} mmHg</strong> — 심근 허혈 즉시 발생. 베르누이 효과로 인한 혈관 경련(Vasospasm)이 추가로 혈관을 폐색시킬 수 있습니다. <strong style="color:var(--text);">응급 재관류 치료</strong>가 필요한 상태입니다.`;
+    }
 
-  // update labels
-  document.getElementById('lbl_d1').textContent=fmt(parseFloat(sl_d1.value));
-  document.getElementById('lbl_d2').textContent=fmt(parseFloat(sl_d2.value));
-  document.getElementById('lbl_v1').textContent=fmt(v1);
-  document.getElementById('lbl_p1').textContent=fmt(p1_mmhg,0);
-  document.getElementById('box_d1').textContent=fmt(parseFloat(sl_d1.value))+' mm';
-  document.getElementById('box_d2').textContent=fmt(parseFloat(sl_d2.value))+' mm';
-  document.getElementById('box_v1').textContent=fmt(v1)+' m/s';
-  document.getElementById('box_p1').textContent=fmt(p1_mmhg,0)+' mmHg';
+    statusEl.textContent = status;
+    statusEl.style.color = scolor;
+    commentEl.innerHTML  = comment;
 
-  // clamp d2 <= d1
-  if(d2>=d1){
-    sl_d2.value=parseFloat(sl_d1.value)-0.1;
-    calc(); return;
+    drawStenosis(sten, v1_cms, v2 * 100, p1_mmhg, p2_mmhg);
+    drawProfile(sten, v1_cms, v2 * 100, p1_mmhg, p2_mmhg);
   }
 
-  const v2=v1*(d1/d2)**2; // continuity eq
-  const dP_pa=0.5*RHO*(v2**2-v1**2);
-  const dP_mmhg=dP_pa/MMHG;
-  const p2_mmhg=p1_mmhg-dP_mmhg;
-  const stenRate=(1-(d2/d1)**2)*100; // area stenosis %
+  // ── 혈관 단면 시각화 ──
+  function drawStenosis(sten, v1, v2, p1, p2) {
+    const canvas = document.getElementById('stenosisCanvas');
+    const W = canvas.parentElement.offsetWidth || 620;
+    const H = 200;
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
 
-  document.getElementById('res_v2').innerHTML=`${fmt(v2)} <span class="r-unit">m/s</span>`;
-  document.getElementById('res_v2_sub').textContent=`v₁ = ${fmt(v1)} m/s 의 ${fmt(v2/v1,1)}배`;
-  document.getElementById('res_dp').innerHTML=`${fmt(dP_mmhg)} <span class="r-unit">mmHg</span>`;
-  document.getElementById('res_dp_sub').textContent=`= ${fmt(dP_pa/1000,2)} kPa`;
-  document.getElementById('res_p2').innerHTML=`${fmt(p2_mmhg)} <span class="r-unit">mmHg</span>`;
-  document.getElementById('res_p2_sub').textContent=p2_mmhg<60?'⚠️ 관류압 위험':'정상 범주';
-  document.getElementById('res_sten').innerHTML=`${fmt(stenRate)} <span class="r-unit">%</span>`;
+    ctx.fillStyle = '#1c2330';
+    ctx.fillRect(0, 0, W, H);
 
-  // severity label
-  let sev='경증',sevColor='var(--green)';
-  if(stenRate>=90){sev='초중증';sevColor='var(--red)';}
-  else if(stenRate>=75){sev='중증';sevColor='var(--coral)';}
-  else if(stenRate>=50){sev='중등도';sevColor='var(--amber)';}
-  document.getElementById('res_sten_sub').innerHTML=`<span style="color:${sevColor};font-weight:700;">${sev}</span>`;
+    const cy    = H / 2;
+    const R0    = H * 0.28;
+    const narrowR = R0 * Math.sqrt(1 - sten / 100);
+    const x1    = W * 0.28;
+    const x2    = W * 0.5;
+    const x3    = W * 0.72;
 
-  // bar
-  const pct=Math.min(100,Math.max(0,(p2_mmhg/200)*100));
-  const barFill=document.getElementById('bar_fill');
-  barFill.style.width=pct+'%';
-  barFill.style.background=p2_mmhg<60?'var(--red)':p2_mmhg<80?'var(--coral)':'var(--blue)';
-  document.getElementById('bar_label').textContent=fmt(p2_mmhg)+' mmHg';
+    // 혈관 경로 (위/아래)
+    function vesselPath(top) {
+      const sign = top ? -1 : 1;
+      ctx.beginPath();
+      ctx.moveTo(0, cy + sign * R0);
+      ctx.lineTo(x1, cy + sign * R0);
+      ctx.bezierCurveTo(x1 + (x2-x1)*0.6, cy + sign * R0, x2 - (x2-x1)*0.3, cy + sign * narrowR, x2, cy + sign * narrowR);
+      ctx.bezierCurveTo(x2 + (x3-x2)*0.3, cy + sign * narrowR, x3 - (x3-x2)*0.4, cy + sign * R0, x3, cy + sign * R0);
+      ctx.lineTo(W, cy + sign * R0);
+    }
 
-  // warning
-  const warn=document.getElementById('warnBox');
-  const msgs=[];
-  if(stenRate>75) msgs.push(`<strong>협착률 ${fmt(stenRate)}%</strong> — 중증 협착. 원위부 관류 압력이 크게 감소합니다.`);
-  if(p2_mmhg<60) msgs.push(`<strong>P₂ = ${fmt(p2_mmhg)} mmHg</strong> — 관류압이 60 mmHg 미만으로 허혈 위험이 있습니다.`);
-  if(v2>4.0) msgs.push(`<strong>v₂ = ${fmt(v2)} m/s</strong> — 협착부 유속이 4 m/s 초과. 와류 및 난류 발생 가능.`);
-  if(msgs.length){warn.classList.remove('hide');document.getElementById('warnMsg').innerHTML=msgs.join('<br>');}
-  else warn.classList.add('hide');
+    // 벽 (위)
+    vesselPath(true);
+    ctx.lineTo(W, cy - R0 - 18);
+    ctx.lineTo(0, cy - R0 - 18);
+    ctx.closePath();
+    ctx.fillStyle = '#30363d';
+    ctx.fill();
 
-  drawVessel(parseFloat(sl_d1.value),parseFloat(sl_d2.value));
-}
+    // 벽 (아래)
+    vesselPath(false);
+    ctx.lineTo(W, cy + R0 + 18);
+    ctx.lineTo(0, cy + R0 + 18);
+    ctx.closePath();
+    ctx.fillStyle = '#30363d';
+    ctx.fill();
 
-[sl_d1,sl_d2,sl_v1,sl_p1].forEach(el=>el.addEventListener('input',calc));
-calc();
+    // 플라크
+    if (sten > 5) {
+      const plaqCol = sten > 70 ? '#8b0000' : sten > 40 ? '#c0392b' : '#e74c3c';
+      // 위 플라크
+      ctx.beginPath();
+      ctx.moveTo(x1, cy - R0);
+      ctx.bezierCurveTo(x1+(x2-x1)*0.6, cy-R0, x2-(x2-x1)*0.3, cy-narrowR, x2, cy-narrowR);
+      ctx.bezierCurveTo(x2+(x3-x2)*0.3, cy-narrowR, x3-(x3-x2)*0.4, cy-R0, x3, cy-R0);
+      ctx.fillStyle = plaqCol + '99';
+      ctx.fill();
+      // 아래 플라크
+      ctx.beginPath();
+      ctx.moveTo(x1, cy + R0);
+      ctx.bezierCurveTo(x1+(x2-x1)*0.6, cy+R0, x2-(x2-x1)*0.3, cy+narrowR, x2, cy+narrowR);
+      ctx.bezierCurveTo(x2+(x3-x2)*0.3, cy+narrowR, x3-(x3-x2)*0.4, cy+R0, x3, cy+R0);
+      ctx.fillStyle = plaqCol + '99';
+      ctx.fill();
+    }
+
+    // 혈액 내강
+    ctx.beginPath();
+    ctx.moveTo(0, cy - R0);
+    ctx.lineTo(x1, cy - R0);
+    ctx.bezierCurveTo(x1+(x2-x1)*0.6, cy-R0, x2-(x2-x1)*0.3, cy-narrowR, x2, cy-narrowR);
+    ctx.bezierCurveTo(x2+(x3-x2)*0.3, cy-narrowR, x3-(x3-x2)*0.4, cy-R0, x3, cy-R0);
+    ctx.lineTo(W, cy - R0);
+    ctx.lineTo(W, cy + R0);
+    ctx.lineTo(x3, cy + R0);
+    ctx.bezierCurveTo(x3-(x3-x2)*0.4, cy+R0, x2+(x3-x2)*0.3, cy+narrowR, x2, cy+narrowR);
+    ctx.bezierCurveTo(x2-(x2-x1)*0.3, cy+narrowR, x1+(x2-x1)*0.6, cy+R0, x1, cy+R0);
+    ctx.lineTo(0, cy + R0);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(192,57,43,0.12)';
+    ctx.fill();
+
+    // 속도 화살표
+    const arrowRegions = [
+      {xStart:10, xEnd:x1-10, v:v1, R:R0},
+      {xStart:x2+10, xEnd:x3-10, v:v2, R:narrowR},
+      {xStart:x3+10, xEnd:W-10, v:v1, R:R0},
+    ];
+    arrowRegions.forEach(reg => {
+      const cx2 = (reg.xStart + reg.xEnd) / 2;
+      for (let i = -2; i <= 2; i++) {
+        const ry = cy + i * (reg.R / 2.5);
+        const ratio = ry - cy === 0 ? 1 : 1 - Math.pow((ry-cy)/reg.R, 2);
+        const len = Math.max(ratio * reg.v * 0.28, 0);
+        if (len < 4) continue;
+        const ax = cx2 - len/2;
+        const col = reg.v > v1 * 1.5 ? '#f85149' : '#e74c3c';
+        ctx.strokeStyle = col; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(ax, ry); ctx.lineTo(ax+len-4, ry); ctx.stroke();
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.moveTo(ax+len-4, ry-3); ctx.lineTo(ax+len+1, ry); ctx.lineTo(ax+len-4, ry+3);
+        ctx.fill();
+      }
+    });
+
+    // 레이블
+    ctx.font = '500 11px Space Grotesk, monospace';
+    ctx.textAlign = 'center';
+
+    ctx.fillStyle = '#3fb950';
+    ctx.fillText('P₁ = ' + p1.toFixed(0) + ' mmHg', x1/2, cy - R0 - 6);
+    ctx.fillText('V₁ = ' + v1.toFixed(0) + ' cm/s', x1/2, cy + R0 + 15);
+
+    const p2col = p2 < 30 ? '#f85149' : p2 < 60 ? '#d29922' : '#f0997b';
+    ctx.fillStyle = p2col;
+    ctx.fillText('P₂ = ' + p2.toFixed(0) + ' mmHg', x2, cy - narrowR - 8);
+    ctx.fillStyle = '#d29922';
+    ctx.fillText('V₂ = ' + v2.toFixed(0) + ' cm/s', x2, cy + narrowR + 16);
+
+    ctx.fillStyle = '#3fb950';
+    ctx.fillText('P₃ ≈ P₁', (x3+W)/2, cy - R0 - 6);
+
+    if (sten > 5) {
+      ctx.fillStyle = '#f8514988';
+      ctx.font = '10px Space Grotesk, monospace';
+      ctx.fillText('plaque', x2, cy - R0 + (R0 - narrowR)/2 + 4);
+    }
+
+    ctx.textAlign = 'left';
+  }
+
+  // ── 압력·속도 분포 프로파일 ──
+  function drawProfile(sten, v1, v2, p1, p2) {
+    const canvas = document.getElementById('profileCanvas');
+    const W = canvas.parentElement.offsetWidth || 620;
+    const H = 160;
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#1c2330';
+    ctx.fillRect(0, 0, W, H);
+
+    const padL = 10, padR = 10, padT = 28, padB = 20;
+    const cW = W - padL - padR;
+    const cH = H - padT - padB;
+
+    const points = 5;
+    const xs = [0, 0.25, 0.5, 0.75, 1.0].map(r => padL + r * cW);
+
+    // 위치별 값
+    const pVals = [p1, p1 * 0.99, p2, p1 * 0.98, p1 * 0.97];
+    const vVals = [v1, v1 * 1.01, v2, v1 * 1.01, v1];
+
+    const pMax = Math.max(...pVals) * 1.1;
+    const pMin = Math.min(0, Math.min(...pVals) * 0.9);
+    const vMax = Math.max(...vVals) * 1.2;
+
+    function pToY(p) { return padT + cH - (p - pMin) / (pMax - pMin) * cH; }
+    function vToY(v) { return padT + cH - v / vMax * cH; }
+
+    // 배경 구분선
+    ctx.strokeStyle = '#30363d'; ctx.lineWidth = 0.5;
+    xs.forEach(x => {
+      ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + cH); ctx.stroke();
+    });
+
+    // 압력 곡선
+    ctx.strokeStyle = '#f0997b'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    xs.forEach((x, i) => { i === 0 ? ctx.moveTo(x, pToY(pVals[i])) : ctx.lineTo(x, pToY(pVals[i])); });
+    ctx.stroke();
+    xs.forEach((x, i) => {
+      ctx.fillStyle = '#f0997b';
+      ctx.beginPath(); ctx.arc(x, pToY(pVals[i]), 4, 0, Math.PI*2); ctx.fill();
+    });
+
+    // 유속 곡선
+    ctx.strokeStyle = '#d29922'; ctx.lineWidth = 2.5;
+    ctx.setLineDash([6, 3]);
+    ctx.beginPath();
+    xs.forEach((x, i) => { i === 0 ? ctx.moveTo(x, vToY(vVals[i])) : ctx.lineTo(x, vToY(vVals[i])); });
+    ctx.stroke();
+    ctx.setLineDash([]);
+    xs.forEach((x, i) => {
+      ctx.fillStyle = '#d29922';
+      ctx.beginPath(); ctx.arc(x, vToY(vVals[i]), 4, 0, Math.PI*2); ctx.fill();
+    });
+
+    // 협착 위치 표시
+    ctx.strokeStyle = '#f8514966'; ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(xs[2], padT); ctx.lineTo(xs[2], padT + cH); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#f8514988';
+    ctx.font = '10px Space Grotesk, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('협착', xs[2], padT - 4);
+
+    // 범례
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#f0997b';
+    ctx.font = '500 11px Space Grotesk, monospace';
+    ctx.fillText('━ 압력 (P)', padL + 4, padT - 6);
+    ctx.fillStyle = '#d29922';
+    ctx.fillText('┅ 유속 (V)', padL + 90, padT - 6);
+
+    ctx.textAlign = 'center';
+    const labels = ['근위부', '', '협착부', '', '원위부'];
+    labels.forEach((l, i) => {
+      if (!l) return;
+      ctx.fillStyle = '#484f58';
+      ctx.font = '10px Space Grotesk, monospace';
+      ctx.fillText(l, xs[i], H - 4);
+    });
+    ctx.textAlign = 'left';
+  }
+
+  ['sl-p1','sl-v1','sl-sten'].forEach(id =>
+    document.getElementById(id).addEventListener('input', calcAll)
+  );
+
+  calcAll();
 </script>
 </body>
 </html>
