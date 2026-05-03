@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bernoulli & Stenosis Calculator — 생체유체</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+  :root {
+    --bg:#0d1117;--surface:#161b22;--surface2:#1c2330;--border:#30363d;
+    --blue:#58a6ff;--blue-dim:#1f3a5a;--green:#3fb950;--green-dim:#1a3a22;
+    --amber:#d29922;--amber-dim:#3a2e10;--coral:#f0997b;--coral-dim:#3d1f10;
+    --purple:#bc8cff;--purple-dim:#2d1f4a;--red:#f85149;--red-dim:#3d1010;
+    --text:#e6edf3;--text-dim:#8b949e;--text-dimmer:#484f58;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;padding:2rem 1rem 4rem;}
+  .container{max-width:720px;margin:0 auto;}
+
+  /* ── Header ── */
+  header{text-align:center;margin-bottom:2.5rem;padding-bottom:1.8rem;border-bottom:1px solid var(--border);}
+  .logo{width:52px;height:52px;background:var(--blue-dim);border:1px solid var(--blue);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:700;color:var(--blue);}
+  header h1{font-family:'Space Grotesk',sans-serif;font-size:1.45rem;font-weight:700;margin-bottom:.35rem;}
+  header .sub{font-size:.8rem;color:var(--text-dim);line-height:1.7;}
+  .badge{display:inline-block;font-size:.68rem;font-weight:600;padding:2px 9px;border-radius:20px;font-family:'Space Grotesk',sans-serif;margin-top:.5rem;}
+  .badge-blue{background:var(--blue-dim);color:var(--blue);}
+  .badge-amber{background:var(--amber-dim);color:var(--amber);}
+
+  /* ── Section title ── */
+  .sec-title{font-size:.72rem;font-weight:600;color:var(--text-dimmer);text-transform:uppercase;letter-spacing:.08em;font-family:'Space Grotesk',sans-serif;margin-bottom:.8rem;padding-left:2px;}
+
+  /* ── Card ── */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.4rem 1.5rem;margin-bottom:1.2rem;}
+  .card-title{font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+
+  /* ── Slider rows ── */
+  .slider-row{display:grid;grid-template-columns:1fr 110px;align-items:center;gap:.6rem;margin-bottom:.85rem;}
+  .slider-label{font-size:.82rem;color:var(--text-dim);}
+  .slider-label span{color:var(--text);font-weight:500;}
+  input[type=range]{width:100%;accent-color:var(--blue);cursor:pointer;height:4px;}
+  .val-box{text-align:right;font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:600;color:var(--blue);}
+
+  /* ── Vessel SVG area ── */
+  .vessel-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.2rem 1rem;margin-bottom:1.2rem;text-align:center;}
+  #vesselSvg{width:100%;max-width:560px;height:140px;}
+
+  /* ── Result grid ── */
+  .result-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1rem;}
+  @media(max-width:420px){.result-grid{grid-template-columns:1fr;}}
+  .result-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem;}
+  .result-box .r-label{font-size:.72rem;color:var(--text-dim);margin-bottom:.3rem;font-family:'Space Grotesk',sans-serif;text-transform:uppercase;letter-spacing:.05em;}
+  .result-box .r-value{font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:700;}
+  .result-box .r-unit{font-size:.75rem;color:var(--text-dim);margin-left:3px;}
+  .result-box .r-sub{font-size:.72rem;color:var(--text-dimmer);margin-top:.2rem;}
+  .clr-blue{color:var(--blue);}
+  .clr-amber{color:var(--amber);}
+  .clr-green{color:var(--green);}
+  .clr-coral{color:var(--coral);}
+  .clr-red{color:var(--red);}
+
+  /* ── Warning banner ── */
+  .warn{display:flex;align-items:flex-start;gap:.7rem;background:var(--red-dim);border:1px solid var(--red);border-radius:10px;padding:.9rem 1rem;margin-top:1rem;font-size:.8rem;line-height:1.6;color:#f8a09e;}
+  .warn.hide{display:none;}
+  .warn-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px;}
+
+  /* ── Formula block ── */
+  .formula-block{background:var(--surface2);border-left:3px solid var(--purple);border-radius:0 8px 8px 0;padding:.9rem 1.1rem;margin:1rem 0;font-family:'Space Grotesk',sans-serif;font-size:.83rem;color:var(--text-dim);line-height:2;}
+  .formula-block .f-eq{color:var(--purple);font-weight:600;font-size:.9rem;}
+
+  /* ── Pressure bar ── */
+  .bar-wrap{margin-top:1rem;}
+  .bar-label-row{display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-dim);margin-bottom:.4rem;font-family:'Space Grotesk',sans-serif;}
+  .bar-track{background:var(--surface2);border-radius:6px;height:18px;overflow:hidden;position:relative;border:1px solid var(--border);}
+  .bar-fill{height:100%;border-radius:6px;transition:width .4s ease;}
+
+  /* ── Tabs ── */
+  .tabs{display:flex;gap:6px;margin-bottom:1.2rem;}
+  .tab{font-size:.78rem;font-weight:600;font-family:'Space Grotesk',sans-serif;padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;transition:all .2s;}
+  .tab.active{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);}
+
+  /* ── Info table ── */
+  .info-table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:.8rem;}
+  .info-table th{text-align:left;padding:.5rem .7rem;background:var(--surface2);color:var(--text-dim);font-family:'Space Grotesk',sans-serif;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);}
+  .info-table td{padding:.55rem .7rem;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.5;}
+  .info-table tr:last-child td{border-bottom:none;}
+
+  /* ── Back link ── */
+  .back{display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text-dim);text-decoration:none;margin-bottom:1.8rem;transition:color .2s;}
+  .back:hover{color:var(--blue);}
+
+  footer{text-align:center;font-size:.72rem;color:var(--text-dimmer);padding-top:1.5rem;border-top:1px solid var(--border);line-height:1.8;margin-top:2rem;}
+</style>
+</head>
+<body>
+<div class="container">
+  <a class="back" href="./index.html">← 강의자료 목록으로</a>
+
+  <header>
+    <div class="logo">📐</div>
+    <h1>Bernoulli &amp; Stenosis Calculator</h1>
+    <p class="sub">베르누이 방정식으로 협착부(stenosis) 혈압·유속 변화를 실시간으로 계산합니다<br>
+    재능대학교 바이오테크과 — 생체유체 10주차</p>
+    <span class="badge badge-blue">시뮬레이터</span>
+    <span class="badge badge-amber">협착 계산기</span>
+  </header>
+
+  <!-- ══ 원리 요약 ══ -->
+  <div class="sec-title">베르누이 방정식 원리</div>
+  <div class="card" style="margin-bottom:1.4rem;">
+    <div class="card-title">🔬 적용 원리</div>
+    <div class="formula-block">
+      <div class="f-eq">P₁ + ½ρv₁² = P₂ + ½ρv₂²</div>
+      연속 방정식: A₁v₁ = A₂v₂ → v₂ = v₁ × (d₁/d₂)²<br>
+      압력강하: ΔP = ½ρ(v₂² − v₁²)<br>
+      <span style="color:var(--text-dimmer);font-size:.78rem;">ρ(혈액 밀도) ≈ 1060 kg/m³ | 단순화된 비점성·정상류 모델</span>
+    </div>
+    <p style="font-size:.8rem;color:var(--text-dim);line-height:1.8;">
+      혈관이 <strong style="color:var(--coral);">협착</strong>되면 단면적이 줄어 유속이 빨라지고, 베르누이 원리에 의해 그 지점의 <strong style="color:var(--coral);">압력이 떨어집니다.</strong>
+      임상에서는 이 압력 강하(ΔP)를 심초음파 도플러로 측정해 협착 중증도를 평가합니다.
+    </p>
+  </div>
+
+  <!-- ══ 시뮬레이터 ══ -->
+  <div class="sec-title">인터랙티브 시뮬레이터</div>
+  <div class="card">
+    <div class="card-title">⚙️ 파라미터 설정</div>
+
+    <div class="slider-row">
+      <div class="slider-label">정상 혈관 직경 d₁ <span id="lbl_d1">5.0</span> mm</div>
+      <div class="val-box" id="box_d1">5.0 mm</div>
+    </div>
+    <input type="range" id="sl_d1" min="2" max="10" step="0.1" value="5">
+
+    <div class="slider-row" style="margin-top:.9rem;">
+      <div class="slider-label">협착부 직경 d₂ <span id="lbl_d2">2.5</span> mm</div>
+      <div class="val-box clr-coral" id="box_d2">2.5 mm</div>
+    </div>
+    <input type="range" id="sl_d2" min="0.5" max="9.9" step="0.1" value="2.5">
+
+    <div class="slider-row" style="margin-top:.9rem;">
+      <div class="slider-label">근위부 혈류 속도 v₁ <span id="lbl_v1">0.5</span> m/s</div>
+      <div class="val-box" id="box_v1">0.5 m/s</div>
+    </div>
+    <input type="range" id="sl_v1" min="0.1" max="2.0" step="0.05" value="0.5">
+
+    <div class="slider-row" style="margin-top:.9rem;">
+      <div class="slider-label">근위부 압력 P₁ <span id="lbl_p1">120</span> mmHg</div>
+      <div class="val-box" id="box_p1">120 mmHg</div>
+    </div>
+    <input type="range" id="sl_p1" min="60" max="200" step="1" value="120">
+  </div>
+
+  <!-- ══ 혈관 시각화 ══ -->
+  <div class="vessel-wrap">
+    <svg id="vesselSvg" viewBox="0 0 560 140" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <!-- ══ 결과 ══ -->
+  <div class="result-grid">
+    <div class="result-box">
+      <div class="r-label">협착부 유속 v₂</div>
+      <div class="r-value clr-coral" id="res_v2">—</div>
+      <div class="r-sub" id="res_v2_sub"></div>
+    </div>
+    <div class="result-box">
+      <div class="r-label">압력 강하 ΔP</div>
+      <div class="r-value clr-amber" id="res_dp">—</div>
+      <div class="r-sub" id="res_dp_sub"></div>
+    </div>
+    <div class="result-box">
+      <div class="r-label">협착부 압력 P₂</div>
+      <div class="r-value clr-blue" id="res_p2">—</div>
+      <div class="r-sub" id="res_p2_sub"></div>
+    </div>
+    <div class="result-box">
+      <div class="r-label">협착률 (면적 기준)</div>
+      <div class="r-value clr-green" id="res_sten">—</div>
+      <div class="r-sub" id="res_sten_sub"></div>
+    </div>
+  </div>
+
+  <!-- 협착 압력 bar -->
+  <div class="bar-wrap">
+    <div class="bar-label-row">
+      <span>P₂ (협착 후 압력)</span>
+      <span id="bar_label">— mmHg</span>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill" id="bar_fill" style="background:var(--blue);width:60%;"></div>
+    </div>
+  </div>
+
+  <!-- 경고 배너 -->
+  <div class="warn hide" id="warnBox">
+    <div class="warn-icon">⚠️</div>
+    <div id="warnMsg"></div>
+  </div>
+
+  <!-- ══ 임상 중증도 분류 ══ -->
+  <div style="margin-top:1.6rem;">
+    <div class="sec-title">임상 협착 중증도 분류 (대동맥판막 기준)</div>
+    <div class="card">
+      <table class="info-table">
+        <thead>
+          <tr>
+            <th>단계</th><th>면적 협착률</th><th>ΔP (mmHg)</th><th>임상 의미</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>경증</td><td>&lt; 50%</td><td>&lt; 20</td><td style="color:var(--green);">정상 범주</td></tr>
+          <tr><td>중등도</td><td>50–75%</td><td>20–40</td><td style="color:var(--amber);">경과 관찰</td></tr>
+          <tr><td>중증</td><td>75–90%</td><td>40–80</td><td style="color:var(--coral);">치료 고려</td></tr>
+          <tr><td>초중증</td><td>&gt; 90%</td><td>&gt; 80</td><td style="color:var(--red);">즉시 치료</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:.75rem;color:var(--text-dimmer);margin-top:.7rem;">* 단순화된 베르누이 모델. 실제 임상에서는 점도·맥동류·와류 등 추가 보정이 필요합니다.</p>
+    </div>
+  </div>
+
+  <footer>
+    재능대학교 바이오테크과 남정훈 교수 (학과장)<br>
+    생체유체 강의 인터랙티브 자료 — Bernoulli &amp; Stenosis Calculator
+  </footer>
+</div>
+
+<script>
+const RHO = 1060; // kg/m3 혈액 밀도
+const MMHG = 133.322; // 1 mmHg = 133.322 Pa
+
+const sl_d1=document.getElementById('sl_d1');
+const sl_d2=document.getElementById('sl_d2');
+const sl_v1=document.getElementById('sl_v1');
+const sl_p1=document.getElementById('sl_p1');
+
+function fmt(n,dec=1){return n.toFixed(dec);}
+
+function drawVessel(d1mm,d2mm){
+  const svg=document.getElementById('vesselSvg');
+  svg.innerHTML='';
+  const W=560,H=140;
+  const cx=W/2, normR=32, stenR=Math.max(6, normR*(d2mm/d1mm));
+  const transLen=60, stenLen=80;
+  const x1=cx-transLen-stenLen/2, x2=cx-stenLen/2, x3=cx+stenLen/2, x4=cx+transLen+stenLen/2;
+
+  // Vessel walls path (top)
+  const topPath=`M 40 ${H/2-normR}
+    L ${x1} ${H/2-normR}
+    Q ${x2} ${H/2-normR} ${x2} ${H/2-stenR}
+    L ${x3} ${H/2-stenR}
+    Q ${x3} ${H/2-normR} ${x4} ${H/2-normR}
+    L ${W-40} ${H/2-normR}`;
+  const botPath=`M 40 ${H/2+normR}
+    L ${x1} ${H/2+normR}
+    Q ${x2} ${H/2+normR} ${x2} ${H/2+stenR}
+    L ${x3} ${H/2+stenR}
+    Q ${x3} ${H/2+normR} ${x4} ${H/2+normR}
+    L ${W-40} ${H/2+normR}`;
+
+  // Lumen fill
+  const lumenPath=`M 40 ${H/2-normR}
+    L ${x1} ${H/2-normR}
+    Q ${x2} ${H/2-normR} ${x2} ${H/2-stenR}
+    L ${x3} ${H/2-stenR}
+    Q ${x3} ${H/2-normR} ${x4} ${H/2-normR}
+    L ${W-40} ${H/2-normR}
+    L ${W-40} ${H/2+normR}
+    L ${x4} ${H/2+normR}
+    Q ${x3} ${H/2+normR} ${x3} ${H/2+stenR}
+    L ${x2} ${H/2+stenR}
+    Q ${x2} ${H/2+normR} ${x1} ${H/2+normR}
+    L 40 ${H/2+normR} Z`;
+
+  const mk=(tag,attr)=>{const el=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attr).forEach(([k,v])=>el.setAttribute(k,v));return el;};
+
+  // gradient
+  const defs=mk('defs',{});
+  const lg=mk('linearGradient',{id:'bloodGrad',x1:'0%',y1:'0%',x2:'100%',y2:'0%'});
+  [{offset:'0%',color:'#8b1a1a'},{offset:'45%',color:'#c0392b'},{offset:'50%',color:'#e74c3c'},{offset:'55%',color:'#c0392b'},{offset:'100%',color:'#8b1a1a'}].forEach(s=>{
+    const stop=mk('stop',{'offset':s.offset,'stop-color':s.color});lg.appendChild(stop);});
+  defs.appendChild(lg);svg.appendChild(defs);
+
+  const lumen=mk('path',{d:lumenPath,fill:'url(#bloodGrad)',opacity:'0.85'});
+  svg.appendChild(lumen);
+
+  [topPath,botPath].forEach(d=>{
+    const p=mk('path',{d,fill:'none',stroke:'#58a6ff',strokeWidth:'2.5',strokeLinejoin:'round'});
+    svg.appendChild(p);
+  });
+
+  // stenosis highlight
+  const stenBox=mk('rect',{x:x2,y:H/2-stenR-2,width:x3-x2,height:(stenR+2)*2,fill:'none',stroke:'#f0997b',strokeWidth:'1.5',strokeDasharray:'4 3',rx:'4'});
+  svg.appendChild(stenBox);
+
+  // arrows (flow)
+  const arrowY=H/2;
+  [[100,x1-10,1.0],[cx,cx,1.6],[x4+10,W-60,1.0]].forEach(([ax1,ax2,speed])=>{
+    const color=speed>1.2?'#f0997b':'#58a6ff';
+    const arr=mk('line',{x1:ax1,y1:arrowY,x2:ax2,y2:arrowY,stroke:color,strokeWidth:'1.8',markerEnd:'url(#arr'+speed+')'});
+    svg.appendChild(arr);
+  });
+
+  // arrowhead markers
+  [['arr1.0','#58a6ff'],['arr1.6','#f0997b']].forEach(([id,color])=>{
+    const marker=mk('marker',{id,markerWidth:'8',markerHeight:'8',refX:'6',refY:'3',orient:'auto'});
+    const poly=mk('polygon',{points:'0 0, 6 3, 0 6',fill:color});
+    marker.appendChild(poly);defs.appendChild(marker);
+  });
+
+  // labels
+  const lbls=[
+    [70,H/2-normR-10,'P₁ (근위부)','#58a6ff'],
+    [cx,H/2-stenR-16,'협착부','#f0997b'],
+    [W-70,H/2-normR-10,'P₂ (원위부)','#3fb950'],
+  ];
+  lbls.forEach(([lx,ly,text,fill])=>{
+    const t=mk('text',{x:lx,y:ly,'text-anchor':'middle','font-size':'11','font-family':'Space Grotesk, sans-serif',fill});
+    t.textContent=text;svg.appendChild(t);
+  });
+}
+
+function calc(){
+  const d1=parseFloat(sl_d1.value)/1000; // m
+  const d2=parseFloat(sl_d2.value)/1000;
+  const v1=parseFloat(sl_v1.value);
+  const p1_mmhg=parseFloat(sl_p1.value);
+
+  // update labels
+  document.getElementById('lbl_d1').textContent=fmt(parseFloat(sl_d1.value));
+  document.getElementById('lbl_d2').textContent=fmt(parseFloat(sl_d2.value));
+  document.getElementById('lbl_v1').textContent=fmt(v1);
+  document.getElementById('lbl_p1').textContent=fmt(p1_mmhg,0);
+  document.getElementById('box_d1').textContent=fmt(parseFloat(sl_d1.value))+' mm';
+  document.getElementById('box_d2').textContent=fmt(parseFloat(sl_d2.value))+' mm';
+  document.getElementById('box_v1').textContent=fmt(v1)+' m/s';
+  document.getElementById('box_p1').textContent=fmt(p1_mmhg,0)+' mmHg';
+
+  // clamp d2 <= d1
+  if(d2>=d1){
+    sl_d2.value=parseFloat(sl_d1.value)-0.1;
+    calc(); return;
+  }
+
+  const v2=v1*(d1/d2)**2; // continuity eq
+  const dP_pa=0.5*RHO*(v2**2-v1**2);
+  const dP_mmhg=dP_pa/MMHG;
+  const p2_mmhg=p1_mmhg-dP_mmhg;
+  const stenRate=(1-(d2/d1)**2)*100; // area stenosis %
+
+  document.getElementById('res_v2').innerHTML=`${fmt(v2)} <span class="r-unit">m/s</span>`;
+  document.getElementById('res_v2_sub').textContent=`v₁ = ${fmt(v1)} m/s 의 ${fmt(v2/v1,1)}배`;
+  document.getElementById('res_dp').innerHTML=`${fmt(dP_mmhg)} <span class="r-unit">mmHg</span>`;
+  document.getElementById('res_dp_sub').textContent=`= ${fmt(dP_pa/1000,2)} kPa`;
+  document.getElementById('res_p2').innerHTML=`${fmt(p2_mmhg)} <span class="r-unit">mmHg</span>`;
+  document.getElementById('res_p2_sub').textContent=p2_mmhg<60?'⚠️ 관류압 위험':'정상 범주';
+  document.getElementById('res_sten').innerHTML=`${fmt(stenRate)} <span class="r-unit">%</span>`;
+
+  // severity label
+  let sev='경증',sevColor='var(--green)';
+  if(stenRate>=90){sev='초중증';sevColor='var(--red)';}
+  else if(stenRate>=75){sev='중증';sevColor='var(--coral)';}
+  else if(stenRate>=50){sev='중등도';sevColor='var(--amber)';}
+  document.getElementById('res_sten_sub').innerHTML=`<span style="color:${sevColor};font-weight:700;">${sev}</span>`;
+
+  // bar
+  const pct=Math.min(100,Math.max(0,(p2_mmhg/200)*100));
+  const barFill=document.getElementById('bar_fill');
+  barFill.style.width=pct+'%';
+  barFill.style.background=p2_mmhg<60?'var(--red)':p2_mmhg<80?'var(--coral)':'var(--blue)';
+  document.getElementById('bar_label').textContent=fmt(p2_mmhg)+' mmHg';
+
+  // warning
+  const warn=document.getElementById('warnBox');
+  const msgs=[];
+  if(stenRate>75) msgs.push(`<strong>협착률 ${fmt(stenRate)}%</strong> — 중증 협착. 원위부 관류 압력이 크게 감소합니다.`);
+  if(p2_mmhg<60) msgs.push(`<strong>P₂ = ${fmt(p2_mmhg)} mmHg</strong> — 관류압이 60 mmHg 미만으로 허혈 위험이 있습니다.`);
+  if(v2>4.0) msgs.push(`<strong>v₂ = ${fmt(v2)} m/s</strong> — 협착부 유속이 4 m/s 초과. 와류 및 난류 발생 가능.`);
+  if(msgs.length){warn.classList.remove('hide');document.getElementById('warnMsg').innerHTML=msgs.join('<br>');}
+  else warn.classList.add('hide');
+
+  drawVessel(parseFloat(sl_d1.value),parseFloat(sl_d2.value));
+}
+
+[sl_d1,sl_d2,sl_v1,sl_p1].forEach(el=>el.addEventListener('input',calc));
+calc();
+</script>
+</body>
+</html>
