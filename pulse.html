@@ -3,441 +3,402 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pulse Pressure Simulator — 생체유체</title>
+<title>Pulse Pressure Simulator — 바이오생체유체역학</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto Sans KR:wght@400;500;700&display=swap');
-  :root{
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+  :root {
     --bg:#0d1117;--surface:#161b22;--surface2:#1c2330;--border:#30363d;
     --blue:#58a6ff;--blue-dim:#1f3a5a;--green:#3fb950;--green-dim:#1a3a22;
-    --amber:#d29922;--amber-dim:#3a2e10;--coral:#f0997b;--coral-dim:#3d1f10;
-    --purple:#bc8cff;--purple-dim:#2d1f4a;--red:#f85149;--red-dim:#3d1010;
+    --amber:#d29922;--amber-dim:#3a2e10;--red:#f85149;--red-dim:#3d1a1a;
+    --teal:#39c5b0;--teal-dim:#0f3530;
     --text:#e6edf3;--text-dim:#8b949e;--text-dimmer:#484f58;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;padding:2rem 1rem 4rem;}
-  .container{max-width:720px;margin:0 auto;}
-  header{text-align:center;margin-bottom:2.5rem;padding-bottom:1.8rem;border-bottom:1px solid var(--border);}
-  .logo{width:52px;height:52px;background:var(--coral-dim);border:1px solid var(--coral);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.4rem;}
-  header h1{font-family:'Space Grotesk',sans-serif;font-size:1.45rem;font-weight:700;margin-bottom:.35rem;}
-  header .sub{font-size:.8rem;color:var(--text-dim);line-height:1.7;}
-  .badge{display:inline-block;font-size:.68rem;font-weight:600;padding:2px 9px;border-radius:20px;font-family:'Space Grotesk',sans-serif;margin-top:.5rem;}
-  .badge-coral{background:var(--coral-dim);color:var(--coral);}
-  .badge-green{background:var(--green-dim);color:var(--green);}
-  .sec-title{font-size:.72rem;font-weight:600;color:var(--text-dimmer);text-transform:uppercase;letter-spacing:.08em;font-family:'Space Grotesk',sans-serif;margin-bottom:.8rem;}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.4rem 1.5rem;margin-bottom:1.2rem;}
-  .card-title{font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
-  .slider-row{display:grid;grid-template-columns:1fr 130px;align-items:center;gap:.6rem;margin-bottom:.85rem;}
-  .slider-label{font-size:.82rem;color:var(--text-dim);}
-  .slider-label span{color:var(--text);font-weight:500;}
-  input[type=range]{width:100%;accent-color:var(--coral);cursor:pointer;height:4px;}
-  .val-box{text-align:right;font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:600;color:var(--coral);}
-
-  /* Waveform canvas */
-  .chart-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-bottom:1.2rem;}
-  .chart-title{font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:600;color:var(--text-dim);margin-bottom:.8rem;display:flex;justify-content:space-between;align-items:center;}
-  canvas{width:100%;display:block;}
-
-  /* Vessel pressure map */
-  .vmap-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-bottom:1.2rem;}
-
-  /* Result grid */
-  .result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;margin-bottom:1.2rem;}
-  @media(max-width:500px){.result-grid{grid-template-columns:1fr 1fr;}}
-  .result-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.85rem .9rem;}
-  .r-label{font-size:.68rem;color:var(--text-dim);margin-bottom:.3rem;font-family:'Space Grotesk',sans-serif;text-transform:uppercase;letter-spacing:.04em;}
-  .r-value{font-family:'Space Grotesk',sans-serif;font-size:1.15rem;font-weight:700;}
-  .r-sub{font-size:.68rem;color:var(--text-dimmer);margin-top:.2rem;}
-
-  /* clinical classification */
-  .classif{border-radius:10px;padding:.8rem 1rem;font-size:.82rem;line-height:1.7;margin-bottom:1.2rem;border:1px solid;}
-  .classif.normal{background:var(--green-dim);border-color:var(--green);color:#9ee;} 
-  .classif.elevated{background:var(--amber-dim);border-color:var(--amber);color:#ffd;}
-  .classif.high{background:var(--coral-dim);border-color:var(--coral);color:#fcc;}
-  .classif.crisis{background:var(--red-dim);border-color:var(--red);color:#faa;}
-  .classif .cl-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:.88rem;margin-bottom:.3rem;}
-
-  /* Windkessel model diagram */
-  .formula-block{background:var(--surface2);border-left:3px solid var(--coral);border-radius:0 8px 8px 0;padding:.9rem 1.1rem;margin:.8rem 0;font-family:'Space Grotesk',sans-serif;font-size:.82rem;color:var(--text-dim);line-height:2.1;}
-  .f-eq{color:var(--coral);font-weight:600;font-size:.9rem;}
-
-  .info-table{width:100%;border-collapse:collapse;font-size:.8rem;}
-  .info-table th{text-align:left;padding:.5rem .7rem;background:var(--surface2);color:var(--text-dim);font-family:'Space Grotesk',sans-serif;font-size:.7rem;text-transform:uppercase;border-bottom:1px solid var(--border);}
-  .info-table td{padding:.55rem .7rem;border-bottom:1px solid var(--border);line-height:1.5;}
-  .info-table tr:last-child td{border-bottom:none;}
-
-  /* animate toggle */
-  .anim-btn{font-size:.78rem;font-weight:600;font-family:'Space Grotesk',sans-serif;padding:4px 14px;border-radius:20px;border:1px solid var(--coral);background:transparent;color:var(--coral);cursor:pointer;transition:all .2s;}
-  .anim-btn.playing{background:var(--coral-dim);}
-
-  .back{display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text-dim);text-decoration:none;margin-bottom:1.8rem;transition:color .2s;}
-  .back:hover{color:var(--coral);}
-  footer{text-align:center;font-size:.72rem;color:var(--text-dimmer);padding-top:1.5rem;border-top:1px solid var(--border);line-height:1.8;margin-top:2rem;}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;padding:1.5rem 1rem 3rem;}
+  .container{max-width:680px;margin:0 auto;}
+  header{text-align:center;margin-bottom:1.8rem;}
+  .tag{display:inline-block;background:var(--teal-dim);color:var(--teal);font-size:.72rem;font-weight:600;padding:3px 12px;border-radius:20px;margin-bottom:.6rem;font-family:'Space Grotesk',sans-serif;letter-spacing:.04em;}
+  header h1{font-family:'Space Grotesk',sans-serif;font-size:1.6rem;font-weight:700;margin-bottom:.3rem;}
+  header p{font-size:.82rem;color:var(--text-dim);}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem 1.3rem;margin-bottom:1rem;}
+  .card-title{font-size:.72rem;font-weight:600;color:var(--text-dimmer);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem;font-family:'Space Grotesk',sans-serif;}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem;}
+  .stat{background:var(--surface2);border-radius:8px;padding:.9rem 1rem;text-align:center;}
+  .stat .s-label{font-size:.72rem;color:var(--text-dimmer);margin-bottom:4px;}
+  .stat .s-val{font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:700;}
+  .slider-row{display:flex;align-items:center;gap:10px;margin-bottom:.8rem;}
+  .slider-label{font-size:.8rem;color:var(--text-dim);min-width:100px;}
+  .slider-label .sym{font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--text);}
+  input[type=range]{flex:1;height:4px;border-radius:2px;outline:none;cursor:pointer;-webkit-appearance:none;background:var(--border);}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--teal);cursor:pointer;}
+  .slider-val{font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:600;min-width:68px;text-align:right;color:var(--teal);}
+  canvas{display:block;width:100%;border-radius:8px;background:var(--surface2);}
+  .canvas-wrap{margin-bottom:1rem;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .btn-row{display:flex;gap:8px;margin-bottom:1rem;}
+  .ctrl-btn{flex:1;padding:.7rem;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .2s;}
+  .btn-pause{background:var(--amber-dim);border:1px solid var(--amber);color:var(--amber);}
+  .btn-pause:hover{background:var(--amber);color:#000;}
+  .btn-reset{background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);}
+  .btn-reset:hover{border-color:var(--text-dim);color:var(--text);}
+  .info-box{border-left:3px solid var(--teal);border-radius:0;padding:.9rem 1.1rem;background:var(--surface2);font-size:.82rem;color:var(--text-dim);line-height:1.8;margin-bottom:1rem;}
+  .info-box strong{color:var(--text);}
+  .status-bar{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;margin-bottom:1rem;}
+  .status-label{font-size:.78rem;color:var(--text-dim);}
+  .status-val{font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:700;}
+  .vessel-wrap{margin-bottom:1rem;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  footer{text-align:center;font-size:.72rem;color:var(--text-dimmer);margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);}
+  .back-btn{display:inline-block;margin-bottom:1rem;font-size:.8rem;color:var(--text-dim);text-decoration:none;border:1px solid var(--border);border-radius:8px;padding:5px 14px;transition:all .2s;}
+  .back-btn:hover{color:var(--text);border-color:var(--text-dim);}
 </style>
 </head>
 <body>
 <div class="container">
-  <a class="back" href="./index.html">← 강의자료 목록으로</a>
+
+  <a class="back-btn" href="./index.html">← 목록으로</a>
+
   <header>
-    <div class="logo">💓</div>
+    <div class="tag">생체유체 · Hemodynamics (by 남정훈 교수)</div>
     <h1>Pulse Pressure Simulator</h1>
-    <p class="sub">맥압·혈압 분포를 대화형으로 시각화합니다 — Windkessel 모델 기반<br>재능대학교 바이오테크과 — 생체유체 11주차</p>
-    <span class="badge badge-coral">맥압 시뮬레이터</span>
-    <span class="badge badge-green">혈압 분류</span>
+    <p>수축기·이완기 혈압을 조절하며 맥압과 혈압 파형을 실시간으로 체험</p>
   </header>
 
-  <!-- 원리 -->
-  <div class="sec-title">Windkessel 모델 원리</div>
-  <div class="card" style="margin-bottom:1.4rem;">
-    <div class="card-title">📖 2-element Windkessel</div>
-    <div class="formula-block">
-      <div class="f-eq">C · dP/dt + P/R = Q(t)</div>
-      C: 동맥 순응도(compliance) | R: 말초저항 | Q(t): 심박출 파형<br>
-      맥압 PP = SBP − DBP<br>
-      평균동맥압 MAP ≈ DBP + PP/3<br>
-      <span style="color:var(--text-dimmer);font-size:.78rem;">순응도가 낮을수록(노화·경화) 맥압이 넓어지고 수축기 혈압이 높아집니다.</span>
+  <!-- 수치 카드 -->
+  <div class="stat-grid">
+    <div class="stat">
+      <div class="s-label">수축기 (Systolic)</div>
+      <div class="s-val" id="v-sys" style="color:var(--red);">120</div>
+      <div style="font-size:.7rem;color:var(--text-dimmer);margin-top:2px;">mmHg</div>
     </div>
-    <p style="font-size:.8rem;color:var(--text-dim);line-height:1.8;">
-      심장은 수축기에 혈액을 대동맥으로 밀어내고, 이완기에는 대동맥 탄성(Windkessel 효과)이 말초로 혈류를 유지합니다.
-      <strong style="color:var(--coral);">동맥 경직도(stiffness)</strong>가 증가하면 Windkessel 완충 능력이 줄어 맥압이 커지고 심장 후부하가 증가합니다.
-    </p>
+    <div class="stat">
+      <div class="s-label">이완기 (Diastolic)</div>
+      <div class="s-val" id="v-dia" style="color:var(--blue);">80</div>
+      <div style="font-size:.7rem;color:var(--text-dimmer);margin-top:2px;">mmHg</div>
+    </div>
+    <div class="stat">
+      <div class="s-label">맥압 (Pulse P.)</div>
+      <div class="s-val" id="v-pulse" style="color:var(--teal);">40</div>
+      <div style="font-size:.7rem;color:var(--text-dimmer);margin-top:2px;">mmHg</div>
+    </div>
   </div>
 
   <!-- 슬라이더 -->
-  <div class="sec-title">파라미터 설정</div>
   <div class="card">
-    <div class="card-title">⚙️ 혈역학 파라미터</div>
-
+    <div class="card-title">혈압 조절</div>
     <div class="slider-row">
-      <div class="slider-label">수축기 혈압 SBP <span id="lbl_sbp">120</span> mmHg</div>
-      <div class="val-box" id="box_sbp">120 mmHg</div>
+      <span class="slider-label"><span class="sym">수축기</span> SBP</span>
+      <input type="range" id="sl-sys" min="80" max="200" value="120" step="1">
+      <span class="slider-val" id="lbl-sys">120 mmHg</span>
     </div>
-    <input type="range" id="sl_sbp" min="90" max="220" step="1" value="120">
-
-    <div class="slider-row" style="margin-top:.9rem;">
-      <div class="slider-label">이완기 혈압 DBP <span id="lbl_dbp">80</span> mmHg</div>
-      <div class="val-box" id="box_dbp">80 mmHg</div>
+    <div class="slider-row">
+      <span class="slider-label"><span class="sym">이완기</span> DBP</span>
+      <input type="range" id="sl-dia" min="40" max="130" value="80" step="1">
+      <span class="slider-val" id="lbl-dia">80 mmHg</span>
     </div>
-    <input type="range" id="sl_dbp" min="40" max="130" step="1" value="80">
-
-    <div class="slider-row" style="margin-top:.9rem;">
-      <div class="slider-label">심박수 HR <span id="lbl_hr">72</span> bpm</div>
-      <div class="val-box" id="box_hr">72 bpm</div>
-    </div>
-    <input type="range" id="sl_hr" min="40" max="150" step="1" value="72">
-
-    <div class="slider-row" style="margin-top:.9rem;">
-      <div class="slider-label">동맥 순응도 C <span id="lbl_comp">1.0</span> (상대값)</div>
-      <div class="val-box" id="box_comp">1.0</div>
-    </div>
-    <input type="range" id="sl_comp" min="0.2" max="2.0" step="0.05" value="1.0">
-
-    <div class="slider-row" style="margin-top:.9rem;">
-      <div class="slider-label">말초저항 R <span id="lbl_pvr">1.0</span> (상대값)</div>
-      <div class="val-box" id="box_pvr">1.0</div>
-    </div>
-    <input type="range" id="sl_pvr" min="0.5" max="3.0" step="0.05" value="1.0">
-  </div>
-
-  <!-- 파형 차트 -->
-  <div class="chart-wrap">
-    <div class="chart-title">
-      <span>동맥 혈압 파형 (시간 도메인)</span>
-      <button class="anim-btn playing" id="animBtn" onclick="toggleAnim()">⏸ 일시정지</button>
-    </div>
-    <canvas id="waveCanvas" height="200"></canvas>
-  </div>
-
-  <!-- 결과 수치 -->
-  <div class="result-grid">
-    <div class="result-box">
-      <div class="r-label">맥압 PP</div>
-      <div class="r-value" id="res_pp" style="color:var(--coral);">—</div>
-      <div class="r-sub">SBP − DBP</div>
-    </div>
-    <div class="result-box">
-      <div class="r-label">MAP</div>
-      <div class="r-value" id="res_map" style="color:var(--blue);">—</div>
-      <div class="r-sub">평균동맥압</div>
-    </div>
-    <div class="result-box">
-      <div class="r-label">심박출량</div>
-      <div class="r-value" id="res_co" style="color:var(--green);">—</div>
-      <div class="r-sub">추정 CO</div>
-    </div>
-    <div class="result-box">
-      <div class="r-label">주기 T</div>
-      <div class="r-value" id="res_period" style="color:var(--purple);">—</div>
-      <div class="r-sub">심박 주기</div>
+    <div class="slider-row">
+      <span class="slider-label"><span class="sym">심박수</span> HR</span>
+      <input type="range" id="sl-hr" min="40" max="150" value="72" step="1">
+      <span class="slider-val" id="lbl-hr">72 bpm</span>
     </div>
   </div>
 
-  <!-- 혈압 분류 -->
-  <div id="classifBox" class="classif normal">
-    <div class="cl-title" id="classifTitle">정상 혈압</div>
-    <div id="classifDesc"></div>
-  </div>
-
-  <!-- 혈관 부위별 압력 분포 -->
-  <div class="sec-title">혈관 부위별 압력 분포</div>
-  <div class="vmap-wrap">
-    <canvas id="vmapCanvas" height="150"></canvas>
-  </div>
-
-  <!-- 맥압 임상 기준 -->
-  <div class="sec-title">맥압 임상 분류</div>
+  <!-- 파형 캔버스 -->
   <div class="card">
-    <table class="info-table">
-      <thead><tr><th>맥압 (mmHg)</th><th>분류</th><th>원인</th><th>임상 의의</th></tr></thead>
-      <tbody>
-        <tr><td style="color:var(--green);">30–40</td><td>정상</td><td>정상 순응도</td><td>위험 낮음</td></tr>
-        <tr><td style="color:var(--amber);">41–60</td><td>경계</td><td>순응도 경미 감소</td><td>주기 모니터링</td></tr>
-        <tr><td style="color:var(--coral);">61–80</td><td>넓은 맥압</td><td>동맥경화, 대동맥판막 역류</td><td>심혈관 위험↑</td></tr>
-        <tr><td style="color:var(--red);">&gt; 80</td><td>고도 확대</td><td>중증 경화·심부전</td><td>즉시 평가 필요</td></tr>
-      </tbody>
-    </table>
-    <p style="font-size:.75rem;color:var(--text-dimmer);margin-top:.7rem;">* 단순화된 2-element Windkessel 모델 기반. 반사파, 점탄성 등은 미포함.</p>
+    <div class="card-title">동맥 혈압 파형 (시간 도메인)</div>
+    <div class="canvas-wrap">
+      <canvas id="waveCanvas" height="180"></canvas>
+    </div>
+    <div class="btn-row">
+      <button class="ctrl-btn btn-pause" id="pauseBtn" onclick="togglePause()">⏸ 일시정지</button>
+      <button class="ctrl-btn btn-reset" onclick="resetWave()">↺ 초기화</button>
+    </div>
+  </div>
+
+  <!-- 혈관 단면 분포 -->
+  <div class="card">
+    <div class="card-title">혈관 종류별 혈압 분포</div>
+    <div class="vessel-wrap">
+      <canvas id="distCanvas" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- 상태 표시 -->
+  <div class="status-bar">
+    <span class="status-label">현재 혈압 분류</span>
+    <span class="status-val" id="bp-status">정상</span>
+  </div>
+
+  <!-- 평균 동맥압 -->
+  <div class="status-bar">
+    <span class="status-label">평균 동맥압 (MAP = DBP + PP/3)</span>
+    <span class="status-val" id="v-map" style="color:var(--amber);">93 mmHg</span>
+  </div>
+
+  <div class="info-box">
+    <strong>맥압(Pulse Pressure)</strong> = 수축기 혈압 − 이완기 혈압<br>
+    정상 맥압: <strong style="color:var(--teal);">약 40 mmHg</strong><br>
+    맥압 &gt; 60 mmHg → 대동맥 경직(Aortic stiffness) 의심<br>
+    맥압 &lt; 25 mmHg → 심박출량 저하(심부전, 쇼크) 의심
   </div>
 
   <footer>
-    재능대학교 바이오테크과 남정훈 교수 (학과장)<br>
-    생체유체 강의 인터랙티브 자료 — Pulse Pressure Simulator
+    AI-바이오분석특화연구소 (산학협력단 부설) · 재능대학교 바이오테크과
   </footer>
 </div>
 
 <script>
-let animRunning=true, animFrame=0, rafId=null;
+  let sys = 120, dia = 80, hr = 72;
+  let paused = false;
+  let offset = 0;
+  let animId = null;
 
-// ── 파형 생성 (Windkessel 근사) ──
-function generateWave(sbp, dbp, hr, comp, pvr, nPoints=400){
-  const T=60/hr; // 심박 주기 (s)
-  const systolicFrac=0.35; // 수축기 비율
-  const wave=[];
-  for(let i=0;i<nPoints;i++){
-    const tNorm=(i/nPoints)%1; // 0~1 within one cycle
-    let p;
-    if(tNorm<systolicFrac){
-      // 수축기: 상승 후 하강 (Gaussian 근사)
-      const tSys=tNorm/systolicFrac;
-      const peak=Math.exp(-Math.pow((tSys-0.35)/0.18,2));
-      const dicrotic=0.15*Math.exp(-Math.pow((tSys-0.75)/0.1,2));
-      p=dbp+(sbp-dbp)*(peak+dicrotic);
+  // ── 슬라이더 ──
+  function updateSliders() {
+    sys = parseInt(document.getElementById('sl-sys').value);
+    dia = parseInt(document.getElementById('sl-dia').value);
+    if (dia >= sys - 10) { dia = sys - 10; document.getElementById('sl-dia').value = dia; }
+    hr  = parseInt(document.getElementById('sl-hr').value);
+
+    document.getElementById('lbl-sys').textContent = sys + ' mmHg';
+    document.getElementById('lbl-dia').textContent = dia + ' mmHg';
+    document.getElementById('lbl-hr').textContent  = hr  + ' bpm';
+
+    const pp  = sys - dia;
+    const map = Math.round(dia + pp / 3);
+
+    document.getElementById('v-sys').textContent   = sys;
+    document.getElementById('v-dia').textContent   = dia;
+    document.getElementById('v-pulse').textContent = pp;
+    document.getElementById('v-map').textContent   = map + ' mmHg';
+
+    // 맥압 색
+    const ppEl = document.getElementById('v-pulse');
+    ppEl.style.color = pp > 60 ? 'var(--red)' : pp < 25 ? 'var(--amber)' : 'var(--teal)';
+
+    // 상태 분류
+    const statusEl = document.getElementById('bp-status');
+    let status, color;
+    if      (sys < 120 && dia < 80)  { status = '정상 (Normal)';           color = 'var(--green)'; }
+    else if (sys < 130 && dia < 80)  { status = '주의 혈압 (Elevated)';     color = 'var(--teal)';  }
+    else if (sys < 140 || dia < 90)  { status = '고혈압 1기 (HTN Stage 1)'; color = 'var(--amber)'; }
+    else if (sys < 180 || dia < 120) { status = '고혈압 2기 (HTN Stage 2)'; color = 'var(--red)';   }
+    else                              { status = '고혈압 위기 (Crisis)';     color = 'var(--red)';   }
+    statusEl.textContent  = status;
+    statusEl.style.color  = color;
+
+    drawDistribution();
+  }
+
+  ['sl-sys','sl-dia','sl-hr'].forEach(id =>
+    document.getElementById(id).addEventListener('input', updateSliders)
+  );
+
+  // ── 혈압 파형 애니메이션 ──
+  function pressureAt(t) {
+    // t: 0~1 (한 주기)
+    // 수축기 피크 → 중간 딥 → 이완기 베이스라인 형태
+    if (t < 0.15) {
+      return dia + (sys - dia) * Math.sin(Math.PI * t / 0.15);
+    } else if (t < 0.25) {
+      const u = (t - 0.15) / 0.10;
+      return sys - (sys - dia) * 0.2 * u;
+    } else if (t < 0.35) {
+      const u = (t - 0.25) / 0.10;
+      const dicrotic = dia + (sys - dia) * 0.15;
+      return (sys - (sys - dia) * 0.2) * (1 - u) + dicrotic * u;
     } else {
-      // 이완기: 지수 감쇠
-      const tDia=(tNorm-systolicFrac)/(1-systolicFrac);
-      const tau=comp*pvr; // RC 시정수 (상대값)
-      p=dbp+(sbp-dbp)*0.25*Math.exp(-tDia/(tau*0.8));
+      const u = (t - 0.35) / 0.65;
+      const dicrotic = dia + (sys - dia) * 0.15;
+      return dicrotic - (dicrotic - dia) * Math.pow(u, 0.5);
     }
-    wave.push(p);
   }
-  return wave;
-}
 
-function getParams(){
-  return {
-    sbp:parseFloat(document.getElementById('sl_sbp').value),
-    dbp:parseFloat(document.getElementById('sl_dbp').value),
-    hr: parseFloat(document.getElementById('sl_hr').value),
-    comp:parseFloat(document.getElementById('sl_comp').value),
-    pvr: parseFloat(document.getElementById('sl_pvr').value),
-  };
-}
+  function drawWave() {
+    const canvas = document.getElementById('waveCanvas');
+    const W = canvas.parentElement.offsetWidth || 600;
+    const H = 180;
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
 
-// ── 파형 캔버스 ──
-function drawWave(offset=0){
-  const {sbp,dbp,hr,comp,pvr}=getParams();
-  const canvas=document.getElementById('waveCanvas');
-  const W=canvas.offsetWidth||680, H=200;
-  canvas.width=W; canvas.height=H;
-  const ctx=canvas.getContext('2d');
-  ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#1c2330';
+    ctx.fillRect(0, 0, W, H);
 
-  const PAD={l:48,r:16,t:16,b:36};
-  const cW=W-PAD.l-PAD.r, cH=H-PAD.t-PAD.b;
-  const yMin=20, yMax=240;
-  const toY=v=>PAD.t+cH-(v-yMin)/(yMax-yMin)*cH;
+    // 그리드
+    ctx.strokeStyle = '#30363d';
+    ctx.lineWidth = 0.5;
+    const yVals = [40, 60, 80, 100, 120, 140, 160, 180, 200];
+    const pMin = 30, pMax = 220;
+    yVals.forEach(p => {
+      const y = H - ((p - pMin) / (pMax - pMin)) * H;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+      ctx.fillStyle = '#484f58';
+      ctx.font = '10px Space Grotesk, monospace';
+      ctx.fillText(p, 4, y - 2);
+    });
 
-  // Grid
-  ctx.strokeStyle='#30363d';ctx.lineWidth=1;
-  [40,60,80,100,120,140,160,180,200].forEach(v=>{
-    ctx.beginPath();ctx.moveTo(PAD.l,toY(v));ctx.lineTo(PAD.l+cW,toY(v));ctx.stroke();
-    ctx.fillStyle='#484f58';ctx.font='10px Space Grotesk,sans-serif';ctx.textAlign='right';
-    ctx.fillText(v,PAD.l-5,toY(v)+4);
-  });
-  ctx.fillStyle='#8b949e';ctx.font='11px Noto Sans KR,sans-serif';ctx.textAlign='center';
-  ctx.fillText('혈압 (mmHg)',12,PAD.t+cH/2);
-  ctx.fillText('시간 →',PAD.l+cW/2,H-4);
+    // 수축기·이완기 기준선
+    const ySys = H - ((sys - pMin) / (pMax - pMin)) * H;
+    const yDia = H - ((dia - pMin) / (pMax - pMin)) * H;
 
-  // 2 cycles 표시
-  const totalPoints=800;
-  const wave=generateWave(sbp,dbp,hr,comp,pvr,totalPoints);
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = 'rgba(248,81,73,0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, ySys); ctx.lineTo(W, ySys); ctx.stroke();
 
-  // reference lines
-  [[sbp,'#f0997b',`SBP ${sbp}`],[dbp,'#58a6ff',`DBP ${dbp}`]].forEach(([v,c,lbl])=>{
-    ctx.strokeStyle=c;ctx.lineWidth=1;ctx.setLineDash([4,4]);
-    ctx.beginPath();ctx.moveTo(PAD.l,toY(v));ctx.lineTo(PAD.l+cW,toY(v));ctx.stroke();
+    ctx.strokeStyle = 'rgba(88,166,255,0.4)';
+    ctx.beginPath(); ctx.moveTo(0, yDia); ctx.lineTo(W, yDia); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle=c;ctx.font='10px Space Grotesk,sans-serif';ctx.textAlign='left';
-    ctx.fillText(lbl,PAD.l+4,toY(v)-4);
-  });
-  // MAP
-  const map=dbp+(sbp-dbp)/3;
-  ctx.strokeStyle='#3fb950';ctx.lineWidth=1;ctx.setLineDash([2,5]);
-  ctx.beginPath();ctx.moveTo(PAD.l,toY(map));ctx.lineTo(PAD.l+cW,toY(map));ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle='#3fb950';ctx.font='10px Space Grotesk,sans-serif';ctx.textAlign='left';
-  ctx.fillText(`MAP ${map.toFixed(0)}`,PAD.l+4,toY(map)+12);
 
-  // Waveform (with scroll offset for animation)
-  const grad=ctx.createLinearGradient(0,0,0,H);
-  grad.addColorStop(0,'rgba(240,153,123,0.8)');
-  grad.addColorStop(1,'rgba(240,153,123,0.1)');
+    // 레이블
+    ctx.fillStyle = 'rgba(248,81,73,0.8)';
+    ctx.font = '500 11px Space Grotesk, monospace';
+    ctx.fillText('SBP ' + sys, W - 68, ySys - 4);
+    ctx.fillStyle = 'rgba(88,166,255,0.8)';
+    ctx.fillText('DBP ' + dia, W - 68, yDia + 13);
 
-  ctx.beginPath();
-  for(let i=0;i<totalPoints;i++){
-    const idx=(i+offset)%totalPoints;
-    const x=PAD.l+i/totalPoints*cW;
-    const y=toY(wave[idx]);
-    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    // 파형 그리기
+    const cyclesVisible = 3.5;
+    const pxPerCycle = W / cyclesVisible;
+    const speedFactor = hr / 72;
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#39c5b0';
+    ctx.lineWidth = 2.5;
+    let started = false;
+
+    for (let px = 0; px < W; px++) {
+      const tRaw = (px / pxPerCycle + offset * speedFactor) % 1;
+      const p = pressureAt(tRaw);
+      const y = H - ((p - pMin) / (pMax - pMin)) * H;
+      if (!started) { ctx.moveTo(px, y); started = true; }
+      else ctx.lineTo(px, y);
+    }
+    ctx.stroke();
+
+    // 현재 위치 점
+    const curT = (offset * speedFactor) % 1;
+    const curP = pressureAt((1 - curT) % 1);
+    const curY = H - ((curP - pMin) / (pMax - pMin)) * H;
+    ctx.fillStyle = '#39c5b0';
+    ctx.beginPath();
+    ctx.arc(0, curY, 5, 0, Math.PI * 2);
+    ctx.fill();
   }
-  ctx.strokeStyle='#f0997b';ctx.lineWidth=2.2;ctx.stroke();
 
-  // fill under curve
-  ctx.lineTo(PAD.l+cW,toY(yMin));ctx.lineTo(PAD.l,toY(yMin));ctx.closePath();
-  ctx.fillStyle='rgba(240,153,123,0.07)';ctx.fill();
-}
-
-// ── 혈관 압력 분포 맵 ──
-function drawVMap(sbp,dbp){
-  const canvas=document.getElementById('vmapCanvas');
-  const W=canvas.offsetWidth||680, H=150;
-  canvas.width=W; canvas.height=H;
-  const ctx=canvas.getContext('2d');
-  ctx.clearRect(0,0,W,H);
-
-  const segments=[
-    {label:'대동맥',sby:sbp,dby:dbp,x:0,w:0.18},
-    {label:'대동맥궁',sby:sbp*0.97,dby:dbp*0.99,x:0.18,w:0.14},
-    {label:'소동맥',sby:sbp*0.85,dby:dbp*0.96,x:0.32,w:0.16},
-    {label:'세동맥',sby:sbp*0.55,dby:dbp*0.7,x:0.48,w:0.16},
-    {label:'모세혈관',sby:sbp*0.3,dby:dbp*0.3,x:0.64,w:0.13},
-    {label:'정맥',sby:sbp*0.08,dby:dbp*0.08,x:0.77,w:0.13},
-    {label:'대정맥',sby:sbp*0.02,dby:dbp*0.02,x:0.9,w:0.1},
-  ];
-
-  const PAD={l:0,r:0,t:14,b:32};
-  const cW=W, cH=H-PAD.t-PAD.b;
-  const yMax=240,yMin=0;
-  const toY=v=>PAD.t+cH-(v-yMin)/(yMax-yMin)*cH;
-  const toX=frac=>PAD.l+frac*cW;
-
-  // draw segments as colored bars with pressure range
-  segments.forEach(seg=>{
-    const x=toX(seg.x), w=seg.w*cW;
-    const yTop=toY(seg.sby), yBot=toY(seg.dby);
-    const h=Math.max(2,yBot-yTop);
-    // pressure-based color
-    const norm=seg.sby/200;
-    const r=Math.round(240*norm+88*(1-norm));
-    const g=Math.round(80*norm+168*(1-norm));
-    const b=Math.round(80*(1-norm)+255*norm);
-    ctx.fillStyle=`rgba(${r},${g},${b},0.75)`;
-    ctx.fillRect(x+2,yTop,w-4,h);
-
-    // separator
-    ctx.strokeStyle='#30363d';ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(x+w,PAD.t);ctx.lineTo(x+w,PAD.t+cH);ctx.stroke();
-
-    // SBP label
-    ctx.fillStyle='#e6edf3';ctx.font='bold 10px Space Grotesk,sans-serif';ctx.textAlign='center';
-    ctx.fillText(Math.round(seg.sby),x+w/2,yTop-2);
-
-    // segment label
-    ctx.fillStyle='#8b949e';ctx.font='9.5px Noto Sans KR,sans-serif';ctx.textAlign='center';
-    ctx.fillText(seg.label,x+w/2,H-6);
-  });
-
-  // axis label
-  ctx.fillStyle='#484f58';ctx.font='9px Space Grotesk,sans-serif';ctx.textAlign='left';
-  ctx.fillText('mmHg',2,12);
-}
-
-// ── 혈압 분류 ──
-function classify(sbp,dbp,pp){
-  const box=document.getElementById('classifBox');
-  const title=document.getElementById('classifTitle');
-  const desc=document.getElementById('classifDesc');
-  box.className='classif';
-  if(sbp>=180||dbp>=120){
-    box.classList.add('crisis');
-    title.textContent='고혈압 위기 (Hypertensive Crisis)';
-    desc.textContent=`SBP ${sbp} / DBP ${dbp} mmHg — 즉각적인 의료 처치가 필요합니다. 장기 손상 위험이 높습니다.`;
-  } else if(sbp>=140||dbp>=90){
-    box.classList.add('high');
-    title.textContent='고혈압 2단계 (Stage 2 Hypertension)';
-    desc.textContent=`SBP ${sbp} / DBP ${dbp} mmHg — 약물 치료 및 생활습관 교정이 필요합니다.`;
-  } else if(sbp>=130||dbp>=80){
-    box.classList.add('elevated');
-    title.textContent='고혈압 1단계 (Stage 1 Hypertension)';
-    desc.textContent=`SBP ${sbp} / DBP ${dbp} mmHg — 생활습관 교정을 권장합니다. ${pp>60?'맥압이 넓어 동맥경화 가능성을 확인하세요.':''}`;
-  } else if(sbp>=120){
-    box.classList.add('elevated');
-    title.textContent='혈압 주의 (Elevated)');
-    desc.textContent=`SBP ${sbp} / DBP ${dbp} mmHg — 정상 범위보다 높습니다. 규칙적인 모니터링을 권장합니다.`;
-  } else {
-    box.classList.add('normal');
-    title.textContent='정상 혈압 (Normal)';
-    desc.textContent=`SBP ${sbp} / DBP ${dbp} mmHg — 정상 범위입니다. 건강한 생활습관을 유지하세요.`;
+  function animate() {
+    if (!paused) {
+      offset = (offset + 0.003) % 100;
+      drawWave();
+    }
+    animId = requestAnimationFrame(animate);
   }
-}
 
-function update(){
-  const {sbp,dbp,hr,comp,pvr}=getParams();
+  function togglePause() {
+    paused = !paused;
+    const btn = document.getElementById('pauseBtn');
+    btn.textContent = paused ? '▶ 재생' : '⏸ 일시정지';
+  }
 
-  // labels
-  ['sbp','dbp','hr','comp','pvr'].forEach(k=>{
-    const v=getParams()[k];
-    const fmt=k==='comp'||k==='pvr'?v.toFixed(2):Math.round(v);
-    const unit=k==='sbp'||k==='dbp'?' mmHg':k==='hr'?' bpm':k==='comp'?' (순응도)':' (저항)';
-    document.getElementById('lbl_'+k).textContent=fmt;
-    document.getElementById('box_'+k).textContent=fmt+unit;
-  });
+  function resetWave() {
+    offset = 0;
+    paused = false;
+    document.getElementById('pauseBtn').textContent = '⏸ 일시정지';
+  }
 
-  const pp=sbp-dbp;
-  const map=dbp+pp/3;
-  const sv=70*(comp*0.8)*(1/pvr*0.9); // rough SV estimate
-  const co=(sv*hr/1000).toFixed(1);
-  const T=(60/hr).toFixed(2);
+  // ── 혈관 분포 차트 ──
+  function drawDistribution() {
+    const canvas = document.getElementById('distCanvas');
+    const W = canvas.parentElement.offsetWidth || 600;
+    const H = 200;
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
 
-  document.getElementById('res_pp').innerHTML=`${pp} <span style="font-size:.72rem;color:var(--text-dim)">mmHg</span>`;
-  document.getElementById('res_map').innerHTML=`${map.toFixed(0)} <span style="font-size:.72rem;color:var(--text-dim)">mmHg</span>`;
-  document.getElementById('res_co').innerHTML=`${co} <span style="font-size:.72rem;color:var(--text-dim)">L/min</span>`;
-  document.getElementById('res_period').innerHTML=`${T} <span style="font-size:.72rem;color:var(--text-dim)">s</span>`;
+    ctx.fillStyle = '#1c2330';
+    ctx.fillRect(0, 0, W, H);
 
-  classify(sbp,dbp,pp);
-  drawVMap(sbp,dbp);
-}
+    const vessels = [
+      { name: 'Aorta',       sysF: 1.0,  diaF: 1.0,  color: '#f85149' },
+      { name: 'Large A.',    sysF: 0.97, diaF: 0.99,  color: '#e8845a' },
+      { name: 'Small A.',    sysF: 0.92, diaF: 0.96,  color: '#d29922' },
+      { name: 'Arterioles',  sysF: 0.70, diaF: 0.75,  color: '#97c45a' },
+      { name: 'Capillaries', sysF: 0.28, diaF: 0.28,  color: '#3fb950' },
+      { name: 'Venules',     sysF: 0.17, diaF: 0.17,  color: '#39c5b0' },
+      { name: 'Veins',       sysF: 0.10, diaF: 0.10,  color: '#58a6ff' },
+    ];
 
-function animate(){
-  if(!animRunning){rafId=null;return;}
-  drawWave(animFrame);
-  animFrame=(animFrame+2)%800;
-  rafId=requestAnimationFrame(animate);
-}
+    const n = vessels.length;
+    const padL = 68, padR = 20, padT = 24, padB = 30;
+    const chartW = W - padL - padR;
+    const chartH = H - padT - padB;
+    const barW = chartW / n;
 
-function toggleAnim(){
-  animRunning=!animRunning;
-  const btn=document.getElementById('animBtn');
-  if(animRunning){btn.textContent='⏸ 일시정지';btn.classList.add('playing');animate();}
-  else{btn.textContent='▶ 재생';btn.classList.remove('playing');}
-}
+    const pMin2 = 0, pMax2 = 220;
 
-['sl_sbp','sl_dbp','sl_hr','sl_comp','sl_pvr'].forEach(id=>{
-  document.getElementById(id).addEventListener('input',()=>{update();if(!animRunning)drawWave(animFrame);});
-});
-window.addEventListener('resize',()=>{update();if(!animRunning)drawWave(animFrame);});
+    // y축 그리드
+    [0, 40, 80, 120, 160, 200].forEach(p => {
+      const y = padT + chartH - (p / pMax2) * chartH;
+      ctx.strokeStyle = '#30363d';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+      ctx.fillStyle = '#484f58';
+      ctx.font = '10px Space Grotesk, monospace';
+      ctx.fillText(p, 4, y + 4);
+    });
 
-update();
-animate();
+    // 현재 SBP/DBP에 맞춰 각 혈관 혈압 계산
+    vessels.forEach((v, i) => {
+      const x = padL + i * barW + barW * 0.15;
+      const bw = barW * 0.7;
+
+      const vSys = sys * v.sysF;
+      const vDia = dia * v.diaF;
+
+      const yTop = padT + chartH - (vSys / pMax2) * chartH;
+      const yBot = padT + chartH - (vDia / pMax2) * chartH;
+      const yBase = padT + chartH;
+
+      // 맥압 영역 (수축기~이완기)
+      ctx.fillStyle = v.color + '55';
+      ctx.fillRect(x, yTop, bw, yBot - yTop);
+
+      // 이완기 바
+      ctx.fillStyle = v.color + 'aa';
+      ctx.fillRect(x, yBot, bw, yBase - yBot);
+
+      // 수축기 선
+      ctx.strokeStyle = v.color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, yTop);
+      ctx.lineTo(x + bw, yTop);
+      ctx.stroke();
+
+      // 라벨
+      ctx.fillStyle = '#8b949e';
+      ctx.font = '9px Space Grotesk, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(v.name, x + bw / 2, H - 8);
+      ctx.textAlign = 'left';
+    });
+
+    // 범례
+    ctx.fillStyle = '#f85149';
+    ctx.fillRect(padL, 6, 10, 4);
+    ctx.fillStyle = '#8b949e';
+    ctx.font = '10px Space Grotesk, monospace';
+    ctx.fillText('수축기', padL + 14, 12);
+
+    ctx.fillStyle = '#f8514955';
+    ctx.fillRect(padL + 60, 6, 10, 4);
+    ctx.fillStyle = '#8b949e';
+    ctx.fillText('맥압 범위', padL + 74, 12);
+
+    ctx.fillStyle = '#8b949e';
+    ctx.fillText('(mmHg)', 4, 14);
+  }
+
+  // 초기 실행
+  updateSliders();
+  animate();
 </script>
 </body>
 </html>
