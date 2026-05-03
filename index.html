@@ -1,431 +1,116 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>No-slip Boundary Condition (생체유체 인터랙티브 데모)</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
-      background: #f5f6fa;
-      color: #222;
-      min-height: 100vh;
-      padding: 2rem 1rem;
-    }
-
-    .container {
-      max-width: 720px;
-      margin: 0 auto;
-    }
-
-    header {
-      margin-bottom: 2rem;
-    }
-
-    header h1 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #1a1a2e;
-      margin-bottom: 0.3rem;
-    }
-
-    header p {
-      font-size: 0.85rem;
-      color: #666;
-    }
-
-    .badge {
-      display: inline-block;
-      background: #e6f1fb;
-      color: #185FA5;
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 3px 10px;
-      border-radius: 20px;
-      margin-bottom: 0.6rem;
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 1.6rem;
-    }
-
-    .card {
-      background: #fff;
-      border: 1px solid #e2e6ea;
-      border-radius: 10px;
-      padding: 1rem;
-      text-align: center;
-    }
-
-    .card .label {
-      font-size: 0.75rem;
-      color: #888;
-      margin-bottom: 6px;
-    }
-
-    .card .value {
-      font-size: 1.4rem;
-      font-weight: 600;
-    }
-
-    .card .sub {
-      font-size: 0.72rem;
-      color: #aaa;
-      margin-top: 3px;
-    }
-
-    .controls {
-      background: #fff;
-      border: 1px solid #e2e6ea;
-      border-radius: 10px;
-      padding: 1.2rem 1.4rem;
-      margin-bottom: 1.4rem;
-    }
-
-    .control-row {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 0.9rem;
-    }
-
-    .control-row:last-child { margin-bottom: 0; }
-
-    .control-row label {
-      font-size: 0.82rem;
-      color: #555;
-      min-width: 90px;
-    }
-
-    .control-row input[type=range] {
-      flex: 1;
-      accent-color: #185FA5;
-      height: 4px;
-      cursor: pointer;
-    }
-
-    .control-row .readout {
-      font-size: 0.85rem;
-      font-weight: 600;
-      min-width: 60px;
-      text-align: right;
-      color: #185FA5;
-    }
-
-    .svg-wrap {
-      background: #fff;
-      border: 1px solid #e2e6ea;
-      border-radius: 10px;
-      padding: 1rem;
-      margin-bottom: 1.2rem;
-      overflow: hidden;
-    }
-
-    svg { display: block; width: 100%; }
-
-    .note {
-      background: #fff;
-      border-left: 4px solid #185FA5;
-      border-radius: 0 8px 8px 0;
-      padding: 0.9rem 1.1rem;
-      font-size: 0.83rem;
-      color: #444;
-      line-height: 1.8;
-      margin-bottom: 1.4rem;
-    }
-
-    .note strong { color: #185FA5; }
-
-    .formula-box {
-      background: #1a1a2e;
-      border-radius: 10px;
-      padding: 1.2rem 1.4rem;
-      margin-bottom: 1.4rem;
-      color: #e8e8f0;
-      font-size: 0.9rem;
-      line-height: 2;
-    }
-
-    .formula-box .formula {
-      font-family: 'Courier New', monospace;
-      font-size: 1rem;
-      color: #85B7EB;
-      display: block;
-      margin: 0.3rem 0;
-    }
-
-    .formula-box .comment {
-      font-size: 0.78rem;
-      color: #8888aa;
-    }
-
-    .steps {
-      background: #fff;
-      border: 1px solid #e2e6ea;
-      border-radius: 10px;
-      padding: 1.2rem 1.4rem;
-      margin-bottom: 1.4rem;
-    }
-
-    .steps h3 {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 1rem;
-    }
-
-    .step {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      margin-bottom: 0.9rem;
-    }
-
-    .step:last-child { margin-bottom: 0; }
-
-    .step-num {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: #185FA5;
-      color: #fff;
-      font-size: 0.78rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-
-    .step-text {
-      font-size: 0.83rem;
-      color: #444;
-      line-height: 1.7;
-    }
-
-    .step-text strong { color: #1a1a2e; }
-
-    footer {
-      text-align: center;
-      font-size: 0.75rem;
-      color: #bbb;
-      padding-top: 1rem;
-      border-top: 1px solid #eee;
-    }
-
-    @media (max-width: 480px) {
-      .cards { grid-template-columns: 1fr; }
-      header h1 { font-size: 1.2rem; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>생체유체 강의 자료 — 재능대학교 바이오테크과 (남정훈 교수)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+  :root {
+    --bg:#0d1117;--surface:#161b22;--surface2:#1c2330;--border:#30363d;
+    --blue:#58a6ff;--blue-dim:#1f3a5a;--green:#3fb950;--green-dim:#1a3a22;
+    --amber:#d29922;--amber-dim:#3a2e10;--coral:#f0997b;--coral-dim:#3d1f10;
+    --purple:#bc8cff;--purple-dim:#2d1f4a;
+    --text:#e6edf3;--text-dim:#8b949e;--text-dimmer:#484f58;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;padding:2rem 1rem 4rem;}
+  .container{max-width:680px;margin:0 auto;}
+  header{text-align:center;margin-bottom:2.5rem;padding-bottom:2rem;border-bottom:1px solid var(--border);}
+  .logo{width:52px;height:52px;background:var(--blue-dim);border:1px solid var(--blue);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:700;color:var(--blue);}
+  header h1{font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700;color:var(--text);margin-bottom:.4rem;}
+  header .sub{font-size:.82rem;color:var(--text-dim);line-height:1.7;}
+  .section-title{font-size:.72rem;font-weight:600;color:var(--text-dimmer);text-transform:uppercase;letter-spacing:.08em;font-family:'Space Grotesk',sans-serif;margin-bottom:.8rem;padding-left:2px;}
+  .card-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem;}
+  .demo-card{display:flex;align-items:center;gap:1rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.1rem 1.3rem;text-decoration:none;color:var(--text);transition:all .2s;cursor:pointer;}
+  .demo-card:hover{border-color:var(--blue);background:var(--surface2);transform:translateY(-1px);}
+  .demo-card .icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+  .demo-card .info{flex:1;}
+  .demo-card .info .title{font-size:.95rem;font-weight:600;margin-bottom:3px;font-family:'Space Grotesk',sans-serif;}
+  .demo-card .info .desc{font-size:.78rem;color:var(--text-dim);line-height:1.5;}
+  .demo-card .info .tags{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
+  .tag{font-size:.68rem;font-weight:600;padding:2px 8px;border-radius:20px;font-family:'Space Grotesk',sans-serif;letter-spacing:.02em;}
+  .tag-blue{background:var(--blue-dim);color:var(--blue);}
+  .tag-green{background:var(--green-dim);color:var(--green);}
+  .tag-amber{background:var(--amber-dim);color:var(--amber);}
+  .tag-coral{background:var(--coral-dim);color:var(--coral);}
+  .tag-purple{background:var(--purple-dim);color:var(--purple);}
+  .demo-card .arrow{color:var(--text-dimmer);font-size:1rem;flex-shrink:0;transition:color .2s;}
+  .demo-card:hover .arrow{color:var(--blue);}
+  .coming-card{display:flex;align-items:center;gap:1rem;background:var(--surface);border:1px dashed var(--border);border-radius:12px;padding:1.1rem 1.3rem;opacity:.5;}
+  .coming-card .icon{width:44px;height:44px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+  .coming-card .info .title{font-size:.9rem;font-weight:600;margin-bottom:3px;font-family:'Space Grotesk',sans-serif;color:var(--text-dim);}
+  .coming-card .info .desc{font-size:.76rem;color:var(--text-dimmer);}
+  .week-badge{font-size:.68rem;background:var(--surface2);color:var(--text-dimmer);border:1px solid var(--border);padding:2px 8px;border-radius:20px;font-family:'Space Grotesk',sans-serif;}
+  footer{text-align:center;font-size:.72rem;color:var(--text-dimmer);padding-top:1.5rem;border-top:1px solid var(--border);line-height:1.8;}
+</style>
 </head>
 <body>
 <div class="container">
-
   <header>
-    <div class="badge">생체유체 10주차 · 혈역학 기초</div>
-    <h1>No-slip Boundary Condition</h1>
-    <p> 재능대학교 바이오테크과(담당: 남정훈 교수(학과장))</p>
+    <div class="logo">BT</div>
+    <h1>생체유체 인터랙티브 강의자료</h1>
+    <p class="sub">AI-바이오분석특화연구소 (산학협력단 부설)<br>재능대학교 바이오테크과</p>
   </header>
 
-  <div class="cards">
-    <div class="card">
-      <div class="label">벽면 속도 v(R₀)</div>
-      <div class="value" style="color:#D85A30;">= 0</div>
-      <div class="sub">벽에 붙은 유체는 정지</div>
-    </div>
-    <div class="card">
-      <div class="label">중심 속도 v(0)</div>
-      <div class="value" style="color:#185FA5;">V<sub>max</sub></div>
-      <div class="sub">중심부가 가장 빠름</div>
-    </div>
-    <div class="card">
-      <div class="label">속도 분포 형태</div>
-      <div class="value" style="color:#1D9E75;">포물선</div>
-      <div class="sub">parabolic profile</div>
-    </div>
+  <div class="section-title">10주차 — 동맥의 명칭과 혈역학</div>
+  <div class="card-grid">
+    <a class="demo-card" href="./no-slip.html">
+      <div class="icon" style="background:var(--blue-dim);border:1px solid var(--blue);">🩸</div>
+      <div class="info">
+        <div class="title">No-slip Boundary Condition</div>
+        <div class="desc">혈관 벽면에서 유체 속도 = 0. 점도·압력 슬라이더로 포물선 속도 분포 체험</div>
+        <div class="tags">
+          <span class="tag tag-blue">시뮬레이터</span>
+          <span class="tag tag-green">인터랙티브</span>
+        </div>
+      </div>
+      <div class="arrow">→</div>
+    </a>
+    <a class="demo-card" href="./flow-rate-game.html">
+      <div class="icon" style="background:var(--amber-dim);border:1px solid var(--amber);">🎮</div>
+      <div class="info">
+        <div class="title">Flow Rate Simulator &amp; Quiz</div>
+        <div class="desc">Q = πd⁴ΔP/128μL 체험 + 협착 시뮬레이터 + 8문항 퀴즈로 점수 확인</div>
+        <div class="tags">
+          <span class="tag tag-amber">게임·퀴즈</span>
+          <span class="tag tag-coral">협착 시뮬</span>
+          <span class="tag tag-green">인터랙티브</span>
+        </div>
+      </div>
+      <div class="arrow">→</div>
+    </a>
   </div>
 
-  <div class="controls">
-    <div class="control-row">
-      <label>점도 (μ)</label>
-      <input type="range" id="viscSlider" min="1" max="10" value="4" step="1">
-      <span class="readout" id="viscVal">4 mPa·s</span>
+  <div class="section-title">추후 업로드 예정</div>
+  <div class="card-grid">
+    <div class="coming-card">
+      <div class="icon">📐</div>
+      <div class="info">
+        <div class="title">Bernoulli &amp; Stenosis Calculator <span class="week-badge">10주차</span></div>
+        <div class="desc">베르누이 방정식으로 협착부 혈압 계산</div>
+      </div>
     </div>
-    <div class="control-row">
-      <label>압력 차 (ΔP)</label>
-      <input type="range" id="dpSlider" min="1" max="10" value="5" step="1">
-      <span class="readout" id="dpVal">5 mmHg</span>
+    <div class="coming-card">
+      <div class="icon">🔬</div>
+      <div class="info">
+        <div class="title">Blood Viscosity Explorer <span class="week-badge">11주차</span></div>
+        <div class="desc">전단속도에 따른 혈액 점도 변화 (비뉴턴 유체)</div>
+      </div>
     </div>
-  </div>
-
-  <div class="svg-wrap">
-    <svg id="mainSvg" viewBox="0 0 620 300">
-      <defs>
-        <marker id="arrBlue" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-          <path d="M0,0 L6,3 L0,6 Z" fill="#185FA5"/>
-        </marker>
-        <marker id="arrLight" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-          <path d="M0,0 L6,3 L0,6 Z" fill="#85B7EB"/>
-        </marker>
-      </defs>
-
-      <!-- 벽 -->
-      <rect x="60" y="38" width="500" height="16" rx="3" fill="#444441"/>
-      <rect x="60" y="246" width="500" height="16" rx="3" fill="#444441"/>
-
-      <!-- 벽 레이블 -->
-      <text x="310" y="34" font-size="11" fill="#888" text-anchor="middle">Vessel wall (정지, v = 0)</text>
-      <text x="310" y="276" font-size="11" fill="#888" text-anchor="middle">Vessel wall (정지, v = 0)</text>
-
-      <!-- 중심선 -->
-      <line x1="60" y1="152" x2="560" y2="152" stroke="#ccc" stroke-width="0.8" stroke-dasharray="5,4"/>
-      <text x="312" y="148" font-size="10" fill="#aaa" text-anchor="middle">중심선 r = 0  →  V_max</text>
-
-      <!-- r 레이블 -->
-      <text x="42" y="100" font-size="11" fill="#aaa" text-anchor="middle">r = R₀</text>
-      <text x="42" y="210" font-size="11" fill="#aaa" text-anchor="middle">r = R₀</text>
-
-      <!-- 속도 화살표 그룹 -->
-      <g id="velocityArrows"></g>
-
-      <!-- 포물선 면적 -->
-      <polyline id="profileCurve" fill="rgba(24,95,165,0.10)" stroke="#185FA5" stroke-width="2.2"/>
-
-      <!-- v=0 표시 -->
-      <circle cx="90" cy="54" r="4" fill="#D85A30"/>
-      <text x="104" y="58" font-size="10" fill="#D85A30">v = 0</text>
-      <circle cx="90" cy="252" r="4" fill="#D85A30"/>
-      <text x="104" y="256" font-size="10" fill="#D85A30">v = 0</text>
-
-      <!-- V_max 레이블 -->
-      <text id="vmaxTxt" x="200" y="148" font-size="11" fill="#185FA5" font-weight="600">V_max</text>
-
-      <!-- 혈류 방향 -->
-      <text x="310" y="295" font-size="11" fill="#888" text-anchor="middle">Blood flow →</text>
-    </svg>
-  </div>
-
-  <div class="note">
-    <strong>No-slip condition이란?</strong><br>
-    유체 분자는 고체 벽면에 분자간 인력(점착력)으로 달라붙기 때문에, 벽과 동일한 속도를 가집니다.
-    벽이 정지해 있으면 벽면의 유체 속도는 항상 <strong>v = 0</strong>입니다.<br>
-    슬라이더로 점도와 압력을 바꿔봐도 <span style="color:#D85A30;font-weight:600;">벽면은 항상 v = 0</span>임을 확인하세요.
-  </div>
-
-  <div class="formula-box">
-    <div style="font-size:0.78rem;color:#8888aa;margin-bottom:6px;">Hagen-Poiseuille 속도 분포식</div>
-    <span class="formula">v(r) = (d²·ΔP / 16μL) × [1 − (r/R₀)²]</span>
-    <div class="comment">r = R₀ (벽면) 대입 →  v = 0  ✓  (No-slip 자동 만족)</div>
-    <div class="comment">r = 0  (중심)  대입 →  v = V_max  ✓</div>
-  </div>
-
-  <div class="steps">
-    <h3>수업 포인트 (by 남정훈 교수)</h3>
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-text"><strong>벽면 먼저:</strong> "빨간 점 보이죠? 슬라이더를 아무리 바꿔도 벽면 속도는 항상 0입니다."</div>
-    </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <div class="step-text"><strong>중심 대비:</strong> "중심 화살표가 가장 길죠. 중심→벽으로 갈수록 점점 짧아지는 포물선 분포입니다."</div>
-    </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <div class="step-text"><strong>점도 조작:</strong> "μ 높이면 전체 속도 감소 — 꿀처럼 끈적할수록 잘 못 흐름. 하지만 벽면은 여전히 0."</div>
-    </div>
-    <div class="step">
-      <div class="step-num">4</div>
-      <div class="step-text"><strong>압력 조작:</strong> "ΔP 높이면 속도 증가 — 심장이 더 세게 펌프하는 것과 동일. 그래도 벽면은 0."</div>
-    </div>
-    <div class="step">
-      <div class="step-num">5</div>
-      <div class="step-text"><strong>결론:</strong> "유체 분자가 고체 표면에 분자간 인력으로 달라붙기 때문입니다. 이것이 No-slip condition의 물리적 이유."</div>
+    <div class="coming-card">
+      <div class="icon">💓</div>
+      <div class="info">
+        <div class="title">Pulse Pressure Simulator <span class="week-badge">11주차</span></div>
+        <div class="desc">맥압·혈압 분포 대화형 시각화</div>
+      </div>
     </div>
   </div>
 
   <footer>
-    재능대학교 바이오테크과 · 생체유체 강의자료 (남정훈 교수)
+    재능대학교 바이오테크과 남정훈 교수 (학과장) <br>
+    생체유체 강의 인터랙티브 자료 모음
   </footer>
 </div>
-
-<script>
-  function draw() {
-    const mu = parseInt(document.getElementById('viscSlider').value);
-    const dp = parseInt(document.getElementById('dpSlider').value);
-    document.getElementById('viscVal').textContent = mu + ' mPa·s';
-    document.getElementById('dpVal').textContent = dp + ' mmHg';
-
-    const CX = 90;
-    const CY_top = 54;
-    const CY_bot = 252;
-    const CY_mid = 152;
-    const R = CY_mid - CY_top;
-    const vScale = (dp / mu) * 36;
-    const Vmax = vScale;
-
-    const vmaxX = Math.min(CX + Vmax + 10, 540);
-    document.getElementById('vmaxTxt').setAttribute('x', vmaxX);
-
-    const arrowG = document.getElementById('velocityArrows');
-    arrowG.innerHTML = '';
-
-    const rows = 11;
-    for (let i = 0; i <= rows; i++) {
-      const r = -R + (2 * R * i / rows);
-      const cy = CY_mid + r;
-      const ratio = r / R;
-      const v = Vmax * (1 - ratio * ratio);
-      const len = Math.max(v, 0);
-      const x2 = CX + len;
-
-      const ns = 'http://www.w3.org/2000/svg';
-      if (len > 5) {
-        const intensity = len / Vmax;
-        const col = intensity > 0.65 ? '#185FA5' : intensity > 0.3 ? '#378ADD' : '#85B7EB';
-        const markerId = intensity > 0.3 ? 'arrBlue' : 'arrLight';
-        const line = document.createElementNS(ns, 'line');
-        line.setAttribute('x1', CX);
-        line.setAttribute('y1', cy);
-        line.setAttribute('x2', x2 - 4);
-        line.setAttribute('y2', cy);
-        line.setAttribute('stroke', col);
-        line.setAttribute('stroke-width', '2');
-        line.setAttribute('marker-end', 'url(#' + markerId + ')');
-        arrowG.appendChild(line);
-      } else {
-        const circ = document.createElementNS(ns, 'circle');
-        circ.setAttribute('cx', CX);
-        circ.setAttribute('cy', cy);
-        circ.setAttribute('r', '3');
-        circ.setAttribute('fill', '#D85A30');
-        arrowG.appendChild(circ);
-      }
-    }
-
-    const pts = [];
-    const steps = 60;
-    for (let i = 0; i <= steps; i++) {
-      const r = -R + (2 * R * i / steps);
-      const cy = CY_mid + r;
-      const ratio = r / R;
-      const v = Vmax * (1 - ratio * ratio);
-      pts.push((CX + v) + ',' + cy);
-    }
-    pts.push(CX + ',' + CY_bot);
-    pts.push(CX + ',' + CY_top);
-    document.getElementById('profileCurve').setAttribute('points', pts.join(' '));
-  }
-
-  document.getElementById('viscSlider').addEventListener('input', draw);
-  document.getElementById('dpSlider').addEventListener('input', draw);
-  draw();
-</script>
 </body>
 </html>
