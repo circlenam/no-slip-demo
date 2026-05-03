@@ -3,389 +3,413 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Blood Viscosity Explorer — 생체유체</title>
+<title>Blood Viscosity Explorer — 바이오 생체유체역학</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
-  :root{
+  :root {
     --bg:#0d1117;--surface:#161b22;--surface2:#1c2330;--border:#30363d;
     --blue:#58a6ff;--blue-dim:#1f3a5a;--green:#3fb950;--green-dim:#1a3a22;
-    --amber:#d29922;--amber-dim:#3a2e10;--coral:#f0997b;--coral-dim:#3d1f10;
-    --purple:#bc8cff;--purple-dim:#2d1f4a;--red:#f85149;--red-dim:#3d1010;
+    --amber:#d29922;--amber-dim:#3a2e10;--red:#f85149;--red-dim:#3d1a1a;
+    --purple:#bc8cff;--purple-dim:#2d1f4a;--coral:#f0997b;--coral-dim:#3d1f10;
     --text:#e6edf3;--text-dim:#8b949e;--text-dimmer:#484f58;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;padding:2rem 1rem 4rem;}
-  .container{max-width:720px;margin:0 auto;}
-  header{text-align:center;margin-bottom:2.5rem;padding-bottom:1.8rem;border-bottom:1px solid var(--border);}
-  .logo{width:52px;height:52px;background:var(--purple-dim);border:1px solid var(--purple);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.4rem;}
-  header h1{font-family:'Space Grotesk',sans-serif;font-size:1.45rem;font-weight:700;margin-bottom:.35rem;}
-  header .sub{font-size:.8rem;color:var(--text-dim);line-height:1.7;}
-  .badge{display:inline-block;font-size:.68rem;font-weight:600;padding:2px 9px;border-radius:20px;font-family:'Space Grotesk',sans-serif;margin-top:.5rem;}
-  .badge-purple{background:var(--purple-dim);color:var(--purple);}
-  .badge-blue{background:var(--blue-dim);color:var(--blue);}
-  .sec-title{font-size:.72rem;font-weight:600;color:var(--text-dimmer);text-transform:uppercase;letter-spacing:.08em;font-family:'Space Grotesk',sans-serif;margin-bottom:.8rem;}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.4rem 1.5rem;margin-bottom:1.2rem;}
-  .card-title{font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
-  .slider-row{display:grid;grid-template-columns:1fr 120px;align-items:center;gap:.6rem;margin-bottom:.85rem;}
-  .slider-label{font-size:.82rem;color:var(--text-dim);}
-  .slider-label span{color:var(--text);font-weight:500;}
-  input[type=range]{width:100%;accent-color:var(--purple);cursor:pointer;height:4px;}
-  .val-box{text-align:right;font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:600;color:var(--purple);}
-
-  /* Chart canvas */
-  .chart-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-bottom:1.2rem;position:relative;}
-  .chart-title{font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:600;color:var(--text-dim);margin-bottom:.8rem;}
-  canvas{width:100%;display:block;}
-
-  /* Legend */
-  .legend{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.7rem;}
-  .leg-item{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:var(--text-dim);font-family:'Space Grotesk',sans-serif;}
-  .leg-dot{width:12px;height:4px;border-radius:2px;}
-
-  /* Result cards */
-  .result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-bottom:1.2rem;}
-  @media(max-width:480px){.result-grid{grid-template-columns:1fr 1fr;}}
-  .result-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem;}
-  .r-label{font-size:.7rem;color:var(--text-dim);margin-bottom:.3rem;font-family:'Space Grotesk',sans-serif;text-transform:uppercase;letter-spacing:.04em;}
-  .r-value{font-family:'Space Grotesk',sans-serif;font-size:1.25rem;font-weight:700;}
-  .r-sub{font-size:.7rem;color:var(--text-dimmer);margin-top:.2rem;}
-
-  /* Model selector */
-  .model-tabs{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap;}
-  .mtab{font-size:.76rem;font-weight:600;font-family:'Space Grotesk',sans-serif;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;transition:all .2s;}
-  .mtab.active{background:var(--purple-dim);border-color:var(--purple);color:var(--purple);}
-
-  /* Formula */
-  .formula-block{background:var(--surface2);border-left:3px solid var(--purple);border-radius:0 8px 8px 0;padding:.9rem 1.1rem;margin:.8rem 0;font-family:'Space Grotesk',sans-serif;font-size:.82rem;color:var(--text-dim);line-height:2;}
-  .f-eq{color:var(--purple);font-weight:600;font-size:.9rem;}
-
-  /* Comparison table */
-  .info-table{width:100%;border-collapse:collapse;font-size:.8rem;}
-  .info-table th{text-align:left;padding:.5rem .7rem;background:var(--surface2);color:var(--text-dim);font-family:'Space Grotesk',sans-serif;font-size:.7rem;text-transform:uppercase;border-bottom:1px solid var(--border);}
-  .info-table td{padding:.55rem .7rem;border-bottom:1px solid var(--border);line-height:1.5;}
-  .info-table tr:last-child td{border-bottom:none;}
-
-  /* Animated RBC */
-  .rbc-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1.2rem;text-align:center;overflow:hidden;}
-  #rbcSvg{width:100%;max-width:560px;height:90px;}
-
-  .back{display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text-dim);text-decoration:none;margin-bottom:1.8rem;transition:color .2s;}
-  .back:hover{color:var(--purple);}
-  footer{text-align:center;font-size:.72rem;color:var(--text-dimmer);padding-top:1.5rem;border-top:1px solid var(--border);line-height:1.8;margin-top:2rem;}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;padding:1.5rem 1rem 3rem;}
+  .container{max-width:680px;margin:0 auto;}
+  header{text-align:center;margin-bottom:1.8rem;}
+  .tag{display:inline-block;background:var(--purple-dim);color:var(--purple);font-size:.72rem;font-weight:600;padding:3px 12px;border-radius:20px;margin-bottom:.6rem;font-family:'Space Grotesk',sans-serif;letter-spacing:.04em;}
+  header h1{font-family:'Space Grotesk',sans-serif;font-size:1.6rem;font-weight:700;margin-bottom:.3rem;}
+  header p{font-size:.82rem;color:var(--text-dim);}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem 1.3rem;margin-bottom:1rem;}
+  .card-title{font-size:.72rem;font-weight:600;color:var(--text-dimmer);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem;font-family:'Space Grotesk',sans-serif;}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem;}
+  .stat{background:var(--surface2);border-radius:8px;padding:.9rem 1rem;text-align:center;}
+  .stat .s-label{font-size:.72rem;color:var(--text-dimmer);margin-bottom:4px;}
+  .stat .s-val{font-family:'Space Grotesk',sans-serif;font-size:1.3rem;font-weight:700;}
+  .stat .s-unit{font-size:.7rem;color:var(--text-dimmer);margin-top:2px;}
+  .slider-row{display:flex;align-items:center;gap:10px;margin-bottom:.8rem;}
+  .slider-label{font-size:.8rem;color:var(--text-dim);min-width:110px;}
+  .slider-label .sym{font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--text);}
+  input[type=range]{flex:1;height:4px;border-radius:2px;outline:none;cursor:pointer;-webkit-appearance:none;background:var(--border);}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--purple);cursor:pointer;}
+  .slider-val{font-family:'Space Grotesk',sans-serif;font-size:.85rem;font-weight:600;min-width:72px;text-align:right;color:var(--purple);}
+  .canvas-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1rem;}
+  canvas{display:block;width:100%;background:var(--surface2);}
+  .info-box{border-left:3px solid var(--purple);border-radius:0;padding:.9rem 1.1rem;background:var(--surface2);font-size:.82rem;color:var(--text-dim);line-height:1.8;margin-bottom:1rem;}
+  .info-box strong{color:var(--text);}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:1rem;font-size:.78rem;color:var(--text-dim);}
+  .legend-item{display:flex;align-items:center;gap:6px;}
+  .legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+  .rbc-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1rem;}
+  .status-bar{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;margin-bottom:1rem;}
+  .status-label{font-size:.78rem;color:var(--text-dim);}
+  .status-val{font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:700;}
+  .back-btn{display:inline-block;margin-bottom:1rem;font-size:.8rem;color:var(--text-dim);text-decoration:none;border:1px solid var(--border);border-radius:8px;padding:5px 14px;transition:all .2s;}
+  .back-btn:hover{color:var(--text);border-color:var(--text-dim);}
+  footer{text-align:center;font-size:.72rem;color:var(--text-dimmer);margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);}
 </style>
 </head>
 <body>
 <div class="container">
-  <a class="back" href="./index.html">← 강의자료 목록으로</a>
+
+  <a class="back-btn" href="./index.html">← 목록으로</a>
+
   <header>
-    <div class="logo">🔬</div>
+    <div class="tag">바이오생체유체역학 · Hemorheology (by 남정훈 교수)</div>
     <h1>Blood Viscosity Explorer</h1>
-    <p class="sub">전단속도(shear rate)에 따른 혈액 점도 변화를 탐색합니다 — 비뉴턴 유체 특성<br>재능대학교 바이오테크과 — 생체유체 11주차</p>
-    <span class="badge badge-purple">비뉴턴 유체</span>
-    <span class="badge badge-blue">점도 시뮬레이터</span>
+    <p>전단속도(Shear Rate)에 따른 혈액 점도 변화 — 비뉴턴 유체 특성 체험</p>
   </header>
 
-  <!-- 원리 -->
-  <div class="sec-title">비뉴턴 유체 모델</div>
-  <div class="card" style="margin-bottom:1.4rem;">
-    <div class="card-title">📖 점도 모델 선택</div>
-    <div class="model-tabs">
-      <button class="mtab active" onclick="setModel('casson')" id="tab_casson">Casson 모델</button>
-      <button class="mtab" onclick="setModel('power')" id="tab_power">Power-Law 모델</button>
-      <button class="mtab" onclick="setModel('carreau')" id="tab_carreau">Carreau 모델</button>
-      <button class="mtab" onclick="setModel('newton')" id="tab_newton">뉴턴 유체 (비교)</button>
+  <!-- 수치 카드 -->
+  <div class="stat-grid">
+    <div class="stat">
+      <div class="s-label">현재 전단속도</div>
+      <div class="s-val" id="v-sr" style="color:var(--blue);">50</div>
+      <div class="s-unit">s⁻¹</div>
     </div>
-    <div id="formula_casson" class="formula-block">
-      <div class="f-eq">√τ = √τ_y + √(η_c · γ̇)</div>
-      τ: 전단응력(Pa) | τ_y: 항복응력 | η_c: Casson 점도 계수 | γ̇: 전단속도(s⁻¹)<br>
-      <span style="color:var(--text-dimmer);font-size:.78rem;">혈액에 가장 널리 사용되는 모델. 낮은 전단속도에서 적혈구 연전(rouleaux) 형성으로 점도 급증.</span>
+    <div class="stat">
+      <div class="s-label">혈액 점도</div>
+      <div class="s-val" id="v-visc" style="color:var(--purple);">4.2</div>
+      <div class="s-unit">mPa·s</div>
     </div>
-    <div id="formula_power" class="formula-block" style="display:none;">
-      <div class="f-eq">η = K · γ̇^(n−1)</div>
-      K: 점조도 계수 | n: 유동지수(n&lt;1 = shear-thinning)<br>
-      <span style="color:var(--text-dimmer);font-size:.78rem;">단순하지만 넓은 전단속도 범위에서는 정확도가 낮음.</span>
-    </div>
-    <div id="formula_carreau" class="formula-block" style="display:none;">
-      <div class="f-eq">η = η_∞ + (η_0 − η_∞)[1+(λγ̇)²]^((n−1)/2)</div>
-      η_0: 영전단 점도 | η_∞: 무한전단 점도 | λ: 이완시간<br>
-      <span style="color:var(--text-dimmer);font-size:.78rem;">고·저 전단 모두 정확. 수치 시뮬레이션(CFD)에 많이 사용.</span>
-    </div>
-    <div id="formula_newton" class="formula-block" style="display:none;">
-      <div class="f-eq">η = μ = constant ≈ 0.0035 Pa·s</div>
-      <span style="color:var(--text-dimmer);font-size:.78rem;">뉴턴 유체 가정. 대혈관·고전단 영역에서는 근사적으로 유효.</span>
+    <div class="stat">
+      <div class="s-label">물 대비</div>
+      <div class="s-val" id="v-ratio" style="color:var(--amber);">4.2×</div>
+      <div class="s-unit">배</div>
     </div>
   </div>
 
   <!-- 슬라이더 -->
-  <div class="sec-title">파라미터 조정</div>
   <div class="card">
-    <div class="card-title">⚙️ 전단속도 범위 및 조건 설정</div>
+    <div class="card-title">조건 설정</div>
     <div class="slider-row">
-      <div class="slider-label">헤마토크릿(Hct) <span id="lbl_hct">45</span> %</div>
-      <div class="val-box" id="box_hct">45 %</div>
+      <span class="slider-label"><span class="sym">전단속도</span> γ̇</span>
+      <input type="range" id="sl-sr" min="1" max="300" value="50" step="1">
+      <span class="slider-val" id="lbl-sr">50 s⁻¹</span>
     </div>
-    <input type="range" id="sl_hct" min="20" max="70" step="1" value="45">
-
-    <div class="slider-row" style="margin-top:.9rem;">
-      <div class="slider-label">혈장 점도 η_p <span id="lbl_etap">1.2</span> mPa·s</div>
-      <div class="val-box" id="box_etap">1.2 mPa·s</div>
+    <div class="slider-row">
+      <span class="slider-label"><span class="sym">헤마토크릿</span> Hct</span>
+      <input type="range" id="sl-hct" min="20" max="70" value="45" step="1">
+      <span class="slider-val" id="lbl-hct">45 %</span>
     </div>
-    <input type="range" id="sl_etap" min="0.8" max="2.5" step="0.05" value="1.2">
-
-    <div class="slider-row" style="margin-top:.9rem;">
-      <div class="slider-label">항복응력 τ_y <span id="lbl_ty">0.004</span> Pa</div>
-      <div class="val-box" id="box_ty" id="box_ty">0.004 Pa</div>
-    </div>
-    <input type="range" id="sl_ty" min="0.001" max="0.02" step="0.001" value="0.004">
-
-    <div class="slider-row" style="margin-top:.9rem;">
-      <div class="slider-label">관심 전단속도 γ̇* <span id="lbl_gstar">10</span> s⁻¹</div>
-      <div class="val-box clr-amber" id="box_gstar" style="color:var(--amber)">10 s⁻¹</div>
-    </div>
-    <input type="range" id="sl_gstar" min="1" max="1000" step="1" value="10">
-  </div>
-
-  <!-- RBC 애니메이션 -->
-  <div class="rbc-wrap">
-    <svg id="rbcSvg" viewBox="0 0 560 90" xmlns="http://www.w3.org/2000/svg"></svg>
-  </div>
-
-  <!-- 결과 -->
-  <div class="result-grid">
-    <div class="result-box">
-      <div class="r-label">η at γ̇*</div>
-      <div class="r-value" id="res_eta" style="color:var(--purple);">—</div>
-      <div class="r-sub" id="res_eta_sub"></div>
-    </div>
-    <div class="result-box">
-      <div class="r-label">전단응력 τ</div>
-      <div class="r-value" id="res_tau" style="color:var(--amber);">—</div>
-      <div class="r-sub">τ = η × γ̇</div>
-    </div>
-    <div class="result-box">
-      <div class="r-label">뉴턴 대비</div>
-      <div class="r-value" id="res_ratio" style="color:var(--coral);">—</div>
-      <div class="r-sub">η / η_Newton</div>
+    <div class="slider-row">
+      <span class="slider-label"><span class="sym">적혈구 응집</span></span>
+      <input type="range" id="sl-agg" min="1" max="5" value="2" step="0.1">
+      <span class="slider-val" id="lbl-agg">보통</span>
     </div>
   </div>
 
-  <!-- 점도 곡선 차트 -->
-  <div class="chart-wrap">
-    <div class="chart-title">점도 — 전단속도 곡선 (log scale)</div>
-    <canvas id="visChart" height="260"></canvas>
-    <div class="legend">
-      <div class="leg-item"><div class="leg-dot" style="background:var(--purple);"></div>선택 모델</div>
-      <div class="leg-item"><div class="leg-dot" style="background:var(--text-dimmer);border-top:2px dashed var(--text-dimmer);"></div>뉴턴 유체</div>
-      <div class="leg-item"><div class="leg-dot" style="background:var(--amber);"></div>현재 γ̇*</div>
-    </div>
-  </div>
-
-  <!-- 생리적 전단속도 비교 -->
-  <div class="sec-title">생리적 전단속도 범위</div>
+  <!-- 점도 vs 전단속도 곡선 -->
   <div class="card">
-    <table class="info-table">
-      <thead><tr><th>혈관 부위</th><th>전단속도 (s⁻¹)</th><th>점도 특성</th><th>임상 의의</th></tr></thead>
-      <tbody>
-        <tr><td>대정맥 / 심방</td><td>1–10</td><td style="color:var(--coral);">고점도 (비뉴턴)</td><td>혈전 위험↑</td></tr>
-        <tr><td>대동맥</td><td>100–500</td><td style="color:var(--amber);">중간</td><td>죽상동맥경화</td></tr>
-        <tr><td>소동맥</td><td>500–1000</td><td style="color:var(--green);">저점도 (뉴턴 근사)</td><td>말초 저항</td></tr>
-        <tr><td>모세혈관</td><td>1000–10000</td><td style="color:var(--blue);">최저점도</td><td>물질교환</td></tr>
-      </tbody>
-    </table>
+    <div class="card-title">점도 — 전단속도 곡선 (Flow Curve)</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#bc8cff;"></div>혈액 (비뉴턴)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#58a6ff;"></div>물 (뉴턴, 1 mPa·s)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f85149;border-radius:50%;"></div>현재 위치</div>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="flowCurve" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- 적혈구 시각화 -->
+  <div class="card">
+    <div class="card-title">적혈구 거동 시각화</div>
+    <div class="rbc-wrap">
+      <canvas id="rbcCanvas" height="160"></canvas>
+    </div>
+    <div style="font-size:.78rem;color:var(--text-dim);margin-top:8px;line-height:1.7;" id="rbc-desc">
+      저전단 영역: 적혈구가 서로 뭉쳐 <strong style="color:var(--text);">연전(Rouleaux)</strong>을 형성 → 점도 증가
+    </div>
+  </div>
+
+  <!-- 상태 표시 -->
+  <div class="status-bar">
+    <span class="status-label">혈류 영역</span>
+    <span class="status-val" id="flow-zone">중간 전단 (정맥)</span>
+  </div>
+
+  <div class="info-box">
+    <strong>비뉴턴 유체(Non-Newtonian fluid)란?</strong><br>
+    전단속도(γ̇)가 변해도 점도(μ)가 일정한 유체를 <strong>뉴턴 유체</strong>(물, 혈장)라 합니다.<br>
+    혈액은 전단속도가 낮을수록 점도가 높아지는 <strong style="color:var(--purple);">전단감소(Shear-thinning)</strong> 거동을 보입니다.<br>
+    원인: 저전단 시 적혈구 응집(Rouleaux 형성) → 고전단 시 분산 및 변형능 발현
   </div>
 
   <footer>
-    재능대학교 바이오테크과 남정훈 교수 (학과장)<br>
-    생체유체 강의 인터랙티브 자료 — Blood Viscosity Explorer
+    재능대학교 바이오테크과 (by 남정훈 교수)
   </footer>
 </div>
 
 <script>
-let currentModel='casson';
-const ETA_NEWTON=0.0035; // Pa·s
+  let srVal = 50, hctVal = 45, aggVal = 2;
+  let rbcAnimId = null, rbcOffset = 0;
 
-function setModel(m){
-  currentModel=m;
-  ['casson','power','carreau','newton'].forEach(id=>{
-    document.getElementById('tab_'+id).classList.toggle('active',id===m);
-    document.getElementById('formula_'+id).style.display=id===m?'block':'none';
-  });
-  update();
-}
-
-// ── 점도 계산 함수들 ──
-function viscCasson(gDot, hct, etaP, ty){
-  if(gDot<=0) return 0.1;
-  const etaC = etaP * (1 + 0.025*hct + 7.35e-4*hct*hct); // Hct 보정
-  const sqrtTau_y = Math.sqrt(ty);
-  const sqrtGdot = Math.sqrt(gDot);
-  if(sqrtGdot <= 0) return 0.1;
-  const sqrtEta = (sqrtTau_y/sqrtGdot) + Math.sqrt(etaC);
-  return sqrtEta*sqrtEta / gDot;
-}
-function viscPower(gDot, hct){
-  const K=0.035*(1+0.01*hct), n=0.708;
-  return K*Math.pow(Math.max(gDot,0.01),n-1);
-}
-function viscCarreau(gDot, hct, etaP){
-  const eta0=0.16*(1+0.006*hct), etaInf=etaP*0.001*1.2, lambda=3.313, n=0.3568;
-  return etaInf+(eta0-etaInf)*Math.pow(1+(lambda*gDot)**2,(n-1)/2);
-}
-function getViscosity(gDot, hct, etaP, ty){
-  const hctFrac=hct/100, eP=etaP/1000;
-  switch(currentModel){
-    case 'casson': return viscCasson(gDot,hctFrac*100,eP,ty);
-    case 'power':  return viscPower(gDot,hctFrac*100);
-    case 'carreau':return viscCarreau(gDot,hctFrac*100,eP);
-    case 'newton': return ETA_NEWTON;
-  }
-}
-
-// ── Canvas 차트 ──
-function drawChart(hct,etaP,ty,gStar){
-  const canvas=document.getElementById('visChart');
-  const W=canvas.offsetWidth||620, H=260;
-  canvas.width=W; canvas.height=H;
-  const ctx=canvas.getContext('2d');
-  ctx.clearRect(0,0,W,H);
-
-  const PAD={l:58,r:20,t:20,b:44};
-  const cW=W-PAD.l-PAD.r, cH=H-PAD.t-PAD.b;
-
-  // log x: 1~1000 s^-1, y: 0.001~0.2 Pa·s
-  const xMin=Math.log10(1), xMax=Math.log10(1200);
-  const yMin=Math.log10(0.001), yMax=Math.log10(0.25);
-  const toX=v=>PAD.l+(Math.log10(v)-xMin)/(xMax-xMin)*cW;
-  const toY=v=>PAD.t+cH-(Math.log10(Math.max(v,0.001))-yMin)/(yMax-yMin)*cH;
-
-  // Grid
-  ctx.strokeStyle='#30363d'; ctx.lineWidth=1;
-  [1,10,100,1000].forEach(v=>{
-    ctx.beginPath();ctx.moveTo(toX(v),PAD.t);ctx.lineTo(toX(v),PAD.t+cH);ctx.stroke();
-    ctx.fillStyle='#484f58';ctx.font='10px Space Grotesk,sans-serif';ctx.textAlign='center';
-    ctx.fillText(v+'s⁻¹',toX(v),PAD.t+cH+14);
-  });
-  [0.001,0.003,0.01,0.03,0.1].forEach(v=>{
-    ctx.beginPath();ctx.moveTo(PAD.l,toY(v));ctx.lineTo(PAD.l+cW,toY(v));ctx.stroke();
-    ctx.fillStyle='#484f58';ctx.font='10px Space Grotesk,sans-serif';ctx.textAlign='right';
-    ctx.fillText((v*1000).toFixed(v<0.01?1:0)+' mPa·s',PAD.l-5,toY(v)+4);
-  });
-
-  // Axes labels
-  ctx.fillStyle='#8b949e';ctx.font='11px Noto Sans KR,sans-serif';
-  ctx.textAlign='center';ctx.fillText('전단속도 γ̇ (s⁻¹)',PAD.l+cW/2,H-4);
-  ctx.save();ctx.translate(13,PAD.t+cH/2);ctx.rotate(-Math.PI/2);
-  ctx.fillText('점도 η (mPa·s)',0,0);ctx.restore();
-
-  const gDots=[];
-  for(let i=0;i<=200;i++){gDots.push(Math.pow(10,xMin+i*(xMax-xMin)/200));}
-
-  // Newton line
-  ctx.strokeStyle='#484f58';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
-  ctx.beginPath();
-  gDots.forEach((g,i)=>{
-    const y=toY(ETA_NEWTON);
-    i===0?ctx.moveTo(toX(g),y):ctx.lineTo(toX(g),y);
-  });ctx.stroke();ctx.setLineDash([]);
-
-  // Model curve
-  ctx.strokeStyle='#bc8cff';ctx.lineWidth=2.5;
-  ctx.beginPath();
-  gDots.forEach((g,i)=>{
-    const eta=getViscosity(g,hct,etaP/1000,ty);
-    const px=toX(g),py=toY(eta);
-    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
-  });ctx.stroke();
-
-  // gStar marker
-  const etaStar=getViscosity(gStar,hct,etaP/1000,ty);
-  const mx=toX(gStar), my=toY(etaStar);
-  ctx.strokeStyle='#d29922';ctx.lineWidth=1;ctx.setLineDash([3,3]);
-  ctx.beginPath();ctx.moveTo(mx,PAD.t);ctx.lineTo(mx,my);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(PAD.l,my);ctx.lineTo(mx,my);ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle='#d29922';ctx.beginPath();ctx.arc(mx,my,5,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#d29922';ctx.font='bold 10px Space Grotesk,sans-serif';ctx.textAlign='left';
-  ctx.fillText(`γ̇=${gStar} s⁻¹`,mx+7,my-5);
-}
-
-// ── RBC 시각화 ──
-function drawRBC(gStar){
-  const svg=document.getElementById('rbcSvg');
-  svg.innerHTML='';
-  const W=560,H=90;
-  const mk=(tag,attr)=>{const el=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attr).forEach(([k,v])=>el.setAttribute(k,v));return el;};
-
-  // flow channel
-  svg.appendChild(mk('rect',{x:0,y:25,width:W,height:40,fill:'#1c2330',rx:'4'}));
-  svg.appendChild(mk('line',{x1:0,y1:25,x2:W,y2:25,stroke:'#58a6ff',strokeWidth:'1.5'}));
-  svg.appendChild(mk('line',{x1:0,y1:65,x2:W,y2:65,stroke:'#58a6ff',strokeWidth:'1.5'}));
-
-  // shear rate indicator
-  const shearNorm=Math.min(1,Math.log10(gStar)/3); // 0~1
-  const clr=`hsl(${20+shearNorm*100},70%,60%)`;
-
-  // RBC cells — deform based on shear
-  const nCells=7;
-  for(let i=0;i<nCells;i++){
-    const cx=40+i*(W-60)/(nCells-1);
-    const cy=45;
-    const rx=8+shearNorm*6, ry=6-shearNorm*3;
-    const rot=-shearNorm*25;
-    const g=mk('g',{transform:`translate(${cx},${cy}) rotate(${rot})`});
-    g.appendChild(mk('ellipse',{cx:0,cy:0,rx,ry,fill:'#c0392b',opacity:'0.85'}));
-    g.appendChild(mk('ellipse',{cx:0,cy:0,rx:rx*0.45,ry:ry*0.3,fill:'#8b1a1a',opacity:'0.6'}));
-    svg.appendChild(g);
+  // Carreau-Yasuda 모델 근사
+  // μ(γ̇) = μ∞ + (μ0 - μ∞) / (1 + (λγ̇)^a)^n
+  function bloodVisc(sr, hct, agg) {
+    const hctFactor = 1 + (hct - 45) * 0.03;
+    const aggFactor = agg / 2;
+    const mu0   = (12 + aggFactor * 6) * hctFactor;
+    const muInf = (3.5 + (hct - 45) * 0.05) * hctFactor;
+    const lambda = 8 * aggFactor;
+    const n = 0.35;
+    return muInf + (mu0 - muInf) / Math.pow(1 + Math.pow(lambda * sr, 2), (1 - n) / 2);
   }
 
-  // rouleaux at low shear
-  if(gStar<10){
-    for(let i=0;i<3;i++){
-      const cx=100+i*150, cy=45;
-      const g=mk('g',{transform:`translate(${cx},${cy})`});
-      for(let j=-1;j<=1;j++){
-        g.appendChild(mk('ellipse',{cx:j*12,cy:0,rx:8,ry:6,fill:'#c0392b',opacity:'0.7',stroke:'#8b1a1a',strokeWidth:'0.5'}));
-      }
-      svg.appendChild(g);
+  function updateAll() {
+    srVal  = parseInt(document.getElementById('sl-sr').value);
+    hctVal = parseInt(document.getElementById('sl-hct').value);
+    aggVal = parseFloat(document.getElementById('sl-agg').value);
+
+    document.getElementById('lbl-sr').textContent  = srVal + ' s⁻¹';
+    document.getElementById('lbl-hct').textContent = hctVal + ' %';
+    const aggLabels = {1:'매우 낮음', 2:'낮음', 3:'보통', 4:'높음', 5:'매우 높음'};
+    document.getElementById('lbl-agg').textContent = aggLabels[Math.round(aggVal)] || '보통';
+
+    const mu = bloodVisc(srVal, hctVal, aggVal);
+    document.getElementById('v-sr').textContent    = srVal;
+    document.getElementById('v-visc').textContent  = mu.toFixed(1);
+    document.getElementById('v-ratio').textContent = mu.toFixed(1) + '×';
+
+    // 색상 (점도에 따라)
+    const viscEl = document.getElementById('v-visc');
+    viscEl.style.color = mu > 8 ? 'var(--red)' : mu > 5 ? 'var(--amber)' : 'var(--purple)';
+
+    // 혈류 영역
+    const zoneEl = document.getElementById('flow-zone');
+    let zone, zcolor;
+    if      (srVal < 10)  { zone = '저전단 — 정체/정맥동';    zcolor = 'var(--red)';    }
+    else if (srVal < 50)  { zone = '중저전단 — 정맥';         zcolor = 'var(--amber)';  }
+    else if (srVal < 150) { zone = '중간 전단 — 동맥';        zcolor = 'var(--green)';  }
+    else                  { zone = '고전단 — 모세혈관/협착부'; zcolor = 'var(--blue)';   }
+    zoneEl.textContent  = zone;
+    zoneEl.style.color  = zcolor;
+
+    // RBC 설명
+    const descEl = document.getElementById('rbc-desc');
+    if (srVal < 20) {
+      descEl.innerHTML = '저전단 영역: 적혈구가 서로 뭉쳐 <strong style="color:var(--text);">연전(Rouleaux)</strong>을 형성 → 점도 <strong style="color:var(--red);">크게 증가</strong>';
+    } else if (srVal < 100) {
+      descEl.innerHTML = '중간 전단 영역: Rouleaux가 점차 분산되고 적혈구가 <strong style="color:var(--text);">변형</strong>되기 시작 → 점도 감소';
+    } else {
+      descEl.innerHTML = '고전단 영역: 적혈구가 완전히 분산·변형되어 혈류 방향으로 <strong style="color:var(--text);">정렬</strong> → 점도 최소화';
     }
+
+    drawFlowCurve();
   }
 
-  const label=gStar<10?'저전단: 연전(Rouleaux) 형성 → 고점도':gStar<100?'중간 전단: 연전 해체 중':' 고전단: 적혈구 변형·정렬 → 저점도';
-  const t=mk('text',{x:W/2,y:85,'text-anchor':'middle','font-size':'11','font-family':'Noto Sans KR,sans-serif',fill:'#8b949e'});
-  t.textContent=label;svg.appendChild(t);
-}
+  // ── Flow Curve ──
+  function drawFlowCurve() {
+    const canvas = document.getElementById('flowCurve');
+    const W = canvas.parentElement.offsetWidth || 600;
+    const H = 220;
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
 
-function update(){
-  const hct=parseFloat(document.getElementById('sl_hct').value);
-  const etaP=parseFloat(document.getElementById('sl_etap').value);
-  const ty=parseFloat(document.getElementById('sl_ty').value);
-  const gStar=parseFloat(document.getElementById('sl_gstar').value);
+    ctx.fillStyle = '#1c2330';
+    ctx.fillRect(0, 0, W, H);
 
-  document.getElementById('lbl_hct').textContent=hct;
-  document.getElementById('lbl_etap').textContent=etaP.toFixed(2);
-  document.getElementById('lbl_ty').textContent=ty.toFixed(3);
-  document.getElementById('lbl_gstar').textContent=gStar;
-  document.getElementById('box_hct').textContent=hct+' %';
-  document.getElementById('box_etap').textContent=etaP.toFixed(2)+' mPa·s';
-  document.getElementById('box_ty').textContent=ty.toFixed(3)+' Pa';
-  document.getElementById('box_gstar').textContent=gStar+' s⁻¹';
+    const padL = 52, padR = 20, padT = 16, padB = 36;
+    const cW = W - padL - padR;
+    const cH = H - padT - padB;
 
-  const eta=getViscosity(gStar,hct,etaP/1000,ty);
-  const tau=eta*gStar;
-  const ratio=eta/ETA_NEWTON;
+    const srMin = 0.5, srMax = 300;
+    const muMin = 0, muMax = 22;
 
-  document.getElementById('res_eta').innerHTML=`${(eta*1000).toFixed(2)} <span style="font-size:.75rem;color:var(--text-dim)">mPa·s</span>`;
-  document.getElementById('res_eta_sub').textContent=`γ̇ = ${gStar} s⁻¹ 에서`;
-  document.getElementById('res_tau').innerHTML=`${tau.toFixed(4)} <span style="font-size:.75rem;color:var(--text-dim)">Pa</span>`;
-  document.getElementById('res_ratio').innerHTML=`${ratio.toFixed(2)} <span style="font-size:.75rem;color:var(--text-dim)">×</span>`;
+    function toX(sr) { return padL + (Math.log10(sr) - Math.log10(srMin)) / (Math.log10(srMax) - Math.log10(srMin)) * cW; }
+    function toY(mu) { return padT + cH - (mu - muMin) / (muMax - muMin) * cH; }
 
-  drawChart(hct,etaP,ty,gStar);
-  drawRBC(gStar);
-}
+    // 그리드
+    ctx.strokeStyle = '#30363d'; ctx.lineWidth = 0.5;
+    [1, 2, 4, 6, 8, 10, 14, 18, 22].forEach(mu => {
+      const y = toY(mu);
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+      ctx.fillStyle = '#484f58'; ctx.font = '10px Space Grotesk, monospace';
+      ctx.fillText(mu, 4, y + 4);
+    });
+    [1, 5, 10, 50, 100, 300].forEach(sr => {
+      const x = toX(sr);
+      ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + cH); ctx.stroke();
+      ctx.fillStyle = '#484f58'; ctx.font = '10px Space Grotesk, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(sr, x, H - 6);
+      ctx.textAlign = 'left';
+    });
 
-['sl_hct','sl_etap','sl_ty','sl_gstar'].forEach(id=>document.getElementById(id).addEventListener('input',update));
-window.addEventListener('resize',update);
-update();
+    // 축 레이블
+    ctx.fillStyle = '#8b949e'; ctx.font = '11px Space Grotesk, monospace';
+    ctx.fillText('μ (mPa·s)', 4, padT - 4);
+    ctx.textAlign = 'center';
+    ctx.fillText('γ̇ (s⁻¹)', padL + cW / 2, H);
+    ctx.textAlign = 'left';
+
+    // 물 (뉴턴) 기준선
+    ctx.strokeStyle = '#58a6ff66'; ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    ctx.moveTo(padL, toY(1)); ctx.lineTo(W - padR, toY(1));
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#58a6ff88'; ctx.font = '10px Space Grotesk, monospace';
+    ctx.fillText('물 1 mPa·s', padL + 4, toY(1) - 4);
+
+    // 혈액 점도 곡선
+    ctx.strokeStyle = '#bc8cff'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    let started = false;
+    for (let logSr = Math.log10(srMin); logSr <= Math.log10(srMax); logSr += 0.02) {
+      const sr = Math.pow(10, logSr);
+      const mu = bloodVisc(sr, hctVal, aggVal);
+      const x = toX(sr), y = toY(mu);
+      if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // 현재 위치 점
+    const curMu = bloodVisc(srVal, hctVal, aggVal);
+    const cx = toX(srVal), cy = toY(curMu);
+    ctx.fillStyle = '#f85149';
+    ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#e6edf3';
+    ctx.font = '500 11px Space Grotesk, monospace';
+    ctx.fillText(curMu.toFixed(1) + ' mPa·s', cx + 9, cy + 4);
+
+    // 영역 표시
+    ctx.fillStyle = 'rgba(248,81,73,0.06)';
+    ctx.fillRect(padL, padT, toX(20) - padL, cH);
+    ctx.fillStyle = '#f8514944';
+    ctx.font = '9px Space Grotesk, monospace';
+    ctx.fillText('저전단', padL + 2, padT + 12);
+
+    ctx.fillStyle = 'rgba(88,166,255,0.06)';
+    ctx.fillRect(toX(100), padT, toX(srMax) - toX(100), cH);
+    ctx.fillStyle = '#58a6ff44';
+    ctx.fillText('고전단', toX(100) + 2, padT + 12);
+  }
+
+  // ── RBC 애니메이션 ──
+  function drawRBC() {
+    const canvas = document.getElementById('rbcCanvas');
+    const W = canvas.parentElement.offsetWidth || 600;
+    const H = 160;
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#1c2330';
+    ctx.fillRect(0, 0, W, H);
+
+    // 혈관 벽
+    ctx.fillStyle = '#30363d';
+    ctx.fillRect(0, 0, W, 20);
+    ctx.fillRect(0, H - 20, W, 20);
+
+    const zone = srVal < 20 ? 'low' : srVal < 100 ? 'mid' : 'high';
+
+    // 혈류 화살표
+    const arrowSpeed = zone === 'high' ? 3 : zone === 'mid' ? 2 : 1;
+    ctx.strokeStyle = '#30363d'; ctx.lineWidth = 0.5;
+    for (let y = 40; y < H - 20; y += 20) {
+      const ratio = 1 - Math.pow((y - H/2) / (H/2 - 20), 2);
+      const len = ratio * arrowSpeed * 18;
+      ctx.strokeStyle = `rgba(88,166,255,${0.15 + ratio * 0.15})`;
+      ctx.beginPath(); ctx.moveTo(10, y); ctx.lineTo(10 + len, y); ctx.stroke();
+    }
+
+    if (zone === 'low') {
+      // 연전(Rouleaux) 형성 — 뭉쳐있는 적혈구
+      const groups = [
+        {x: 80,  y: 70,  n: 4},
+        {x: 200, y: 90,  n: 5},
+        {x: 340, y: 65,  n: 3},
+        {x: 460, y: 85,  n: 4},
+        {x: 570, y: 70,  n: 3},
+      ];
+      groups.forEach(g => {
+        const gx = ((g.x - rbcOffset * 0.3) % (W + 60)) - 30;
+        for (let i = 0; i < g.n; i++) {
+          const rx = gx + i * 14;
+          const ry = g.y;
+          ctx.beginPath();
+          ctx.ellipse(rx, ry, 10, 6, 0, 0, Math.PI * 2);
+          ctx.fillStyle = '#c0392b';
+          ctx.fill();
+          ctx.strokeStyle = '#e74c3c';
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      });
+      ctx.fillStyle = '#f8514966';
+      ctx.font = '11px Space Grotesk, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('Rouleaux 형성 → 점도 ↑', W / 2, H - 26);
+      ctx.textAlign = 'left';
+
+    } else if (zone === 'mid') {
+      // 분산되는 중
+      const cells = Array.from({length: 14}, (_, i) => ({
+        x: 50 + i * 44,
+        y: 55 + Math.sin(i * 1.3) * 28,
+        angle: (i % 3 - 1) * 0.3,
+      }));
+      cells.forEach(c => {
+        const cx = ((c.x - rbcOffset * 0.6) % (W + 50)) - 25;
+        ctx.save();
+        ctx.translate(cx, c.y);
+        ctx.rotate(c.angle);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 11, 7, 0, 0, Math.PI * 2);
+        ctx.fillStyle = '#c0392b';
+        ctx.fill();
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+        ctx.restore();
+      });
+      ctx.fillStyle = '#d2992244';
+      ctx.font = '11px Space Grotesk, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('Rouleaux 분산 중 → 점도 감소', W / 2, H - 26);
+      ctx.textAlign = 'left';
+
+    } else {
+      // 고전단: 완전 분산 + 변형
+      const cells = Array.from({length: 18}, (_, i) => ({
+        x: 30 + i * 34,
+        y: 50 + Math.sin(i * 0.9 + rbcOffset * 0.02) * 30,
+      }));
+      cells.forEach(c => {
+        const cx = ((c.x - rbcOffset * 1.2) % (W + 40)) - 20;
+        ctx.save();
+        ctx.translate(cx, c.y);
+        ctx.rotate(0.25);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 13, 5, 0, 0, Math.PI * 2);
+        ctx.fillStyle = '#c0392b';
+        ctx.fill();
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+        ctx.restore();
+      });
+      ctx.fillStyle = '#3fb95044';
+      ctx.font = '11px Space Grotesk, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('완전 분산 + 변형·정렬 → 점도 최소', W / 2, H - 26);
+      ctx.textAlign = 'left';
+    }
+
+    rbcOffset += (zone === 'high' ? 1.8 : zone === 'mid' ? 1.0 : 0.5);
+    rbcAnimId = requestAnimationFrame(drawRBC);
+  }
+
+  // 슬라이더 이벤트
+  ['sl-sr','sl-hct','sl-agg'].forEach(id =>
+    document.getElementById(id).addEventListener('input', updateAll)
+  );
+
+  updateAll();
+  drawRBC();
 </script>
 </body>
 </html>
