@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>생체유체 강의 자료 — 재능대학교 바이오테크과 (남정훈 교수)</title>
+<title>생체유체 강의 자료 — 재능대학교 바이오테크과</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
   :root {
     --bg:#0d1117;--surface:#161b22;--surface2:#1c2330;--border:#30363d;
     --blue:#58a6ff;--blue-dim:#1f3a5a;--green:#3fb950;--green-dim:#1a3a22;
     --amber:#d29922;--amber-dim:#3a2e10;--coral:#f0997b;--coral-dim:#3d1f10;
-    --purple:#bc8cff;--purple-dim:#2d1f4a;
+    --purple:#bc8cff;--purple-dim:#2d1f4a;--teal:#39c5b0;--teal-dim:#0f3530;
     --text:#e6edf3;--text-dim:#8b949e;--text-dimmer:#484f58;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
@@ -22,7 +22,7 @@
   header .sub{font-size:.82rem;color:var(--text-dim);line-height:1.7;}
   .section-title{font-size:.72rem;font-weight:600;color:var(--text-dimmer);text-transform:uppercase;letter-spacing:.08em;font-family:'Space Grotesk',sans-serif;margin-bottom:.8rem;padding-left:2px;}
   .card-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:2rem;}
-  .demo-card{display:flex;align-items:center;gap:1rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.1rem 1.3rem;text-decoration:none;color:var(--text);transition:all .2s;cursor:pointer;}
+  .demo-card{display:flex;align-items:center;gap:1rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.1rem 1.3rem;text-decoration:none;color:var(--text);transition:all .2s;}
   .demo-card:hover{border-color:var(--blue);background:var(--surface2);transform:translateY(-1px);}
   .demo-card .icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
   .demo-card .info{flex:1;}
@@ -35,26 +35,24 @@
   .tag-amber{background:var(--amber-dim);color:var(--amber);}
   .tag-coral{background:var(--coral-dim);color:var(--coral);}
   .tag-purple{background:var(--purple-dim);color:var(--purple);}
+  .tag-teal{background:var(--teal-dim);color:var(--teal);}
   .demo-card .arrow{color:var(--text-dimmer);font-size:1rem;flex-shrink:0;transition:color .2s;}
   .demo-card:hover .arrow{color:var(--blue);}
-  .coming-card{display:flex;align-items:center;gap:1rem;background:var(--surface);border:1px dashed var(--border);border-radius:12px;padding:1.1rem 1.3rem;opacity:.5;}
-  .coming-card .icon{width:44px;height:44px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
-  .coming-card .info .title{font-size:.9rem;font-weight:600;margin-bottom:3px;font-family:'Space Grotesk',sans-serif;color:var(--text-dim);}
-  .coming-card .info .desc{font-size:.76rem;color:var(--text-dimmer);}
-  .week-badge{font-size:.68rem;background:var(--surface2);color:var(--text-dimmer);border:1px solid var(--border);padding:2px 8px;border-radius:20px;font-family:'Space Grotesk',sans-serif;}
   footer{text-align:center;font-size:.72rem;color:var(--text-dimmer);padding-top:1.5rem;border-top:1px solid var(--border);line-height:1.8;}
 </style>
 </head>
 <body>
 <div class="container">
+
   <header>
     <div class="logo">BT</div>
     <h1>생체유체 인터랙티브 강의자료</h1>
-    <p class="sub">AI-바이오분석특화연구소 (연구소장: 남정훈 교수)<br>재능대학교 바이오테크과</p>
+    <p class="sub">재능대학교 바이오테크과 (남정훈 교수(학과장))<br>AI-바이오분석특화연구소 (연구소장)</p>
   </header>
 
-  <div class="section-title">10주차 — 동맥의 명칭과 혈역학</div>
+  <div class="section-title">본 게임은 바이오칩 설계를 위한 기본이론학습을 위해 제작되었습니다.</div>
   <div class="card-grid">
+
     <a class="demo-card" href="./no-slip.html">
       <div class="icon" style="background:var(--blue-dim);border:1px solid var(--blue);">🩸</div>
       <div class="info">
@@ -67,6 +65,7 @@
       </div>
       <div class="arrow">→</div>
     </a>
+
     <a class="demo-card" href="./flow-rate-game.html">
       <div class="icon" style="background:var(--amber-dim);border:1px solid var(--amber);">🎮</div>
       <div class="info">
@@ -80,35 +79,50 @@
       </div>
       <div class="arrow">→</div>
     </a>
-  </div>
 
-  <div class="section-title">추후 업로드 예정</div>
-  <div class="card-grid">
-    <div class="coming-card">
-      <div class="icon">📐</div>
+    <a class="demo-card" href="./bernoulli.html">
+      <div class="icon" style="background:var(--coral-dim);border:1px solid var(--coral);">📐</div>
       <div class="info">
-        <div class="title">Bernoulli &amp; Stenosis Calculator <span class="week-badge">10주차</span></div>
-        <div class="desc">베르누이 방정식으로 협착부 혈압 계산</div>
+        <div class="title">Bernoulli &amp; Stenosis Calculator</div>
+        <div class="desc">베르누이 방정식으로 협착부 혈압 실시간 계산 및 시각화</div>
+        <div class="tags">
+          <span class="tag tag-coral">계산기</span>
+          <span class="tag tag-green">인터랙티브</span>
+        </div>
       </div>
-    </div>
-    <div class="coming-card">
-      <div class="icon">🔬</div>
+      <div class="arrow">→</div>
+    </a>
+
+    <a class="demo-card" href="./viscosity.html">
+      <div class="icon" style="background:var(--purple-dim);border:1px solid var(--purple);">🔬</div>
       <div class="info">
-        <div class="title">Blood Viscosity Explorer <span class="week-badge">11주차</span></div>
-        <div class="desc">전단속도에 따른 혈액 점도 변화 (비뉴턴 유체)</div>
+        <div class="title">Blood Viscosity Explorer</div>
+        <div class="desc">전단속도에 따른 혈액 점도 변화 — 비뉴턴 유체 특성 시각화</div>
+        <div class="tags">
+          <span class="tag tag-purple">점도 탐색</span>
+          <span class="tag tag-green">인터랙티브</span>
+        </div>
       </div>
-    </div>
-    <div class="coming-card">
-      <div class="icon">💓</div>
+      <div class="arrow">→</div>
+    </a>
+
+    <a class="demo-card" href="./pulse.html">
+      <div class="icon" style="background:var(--teal-dim);border:1px solid var(--teal);">💓</div>
       <div class="info">
-        <div class="title">Pulse Pressure Simulator <span class="week-badge">11주차</span></div>
-        <div class="desc">맥압·혈압 분포 대화형 시각화</div>
+        <div class="title">Pulse Pressure Simulator</div>
+        <div class="desc">맥압·혈압 분포 대화형 시각화 — 수축기·이완기 혈압 체험</div>
+        <div class="tags">
+          <span class="tag tag-teal">맥압</span>
+          <span class="tag tag-green">인터랙티브</span>
+        </div>
       </div>
-    </div>
+      <div class="arrow">→</div>
+    </a>
+
   </div>
 
   <footer>
-    재능대학교 바이오테크과 남정훈 교수 (학과장) <br>
+    재능대학교 바이오테크과 (바이오생체유체역학: 남정훈 교수)<br>
     생체유체 강의 인터랙티브 자료 모음
   </footer>
 </div>
