@@ -44,6 +44,19 @@
 
   .eng { font-family: 'Space Grotesk', sans-serif; }
 
+  .back-btn {
+    display: inline-block;
+    margin-bottom: 1rem;
+    font-size: .8rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 5px 14px;
+    transition: all .2s;
+  }
+  .back-btn:hover { color: var(--text); border-color: var(--text-dim); }
+
   header {
     text-align: center;
     margin-bottom: 2rem;
@@ -429,6 +442,8 @@
 </head>
 <body>
 <div class="wrap">
+
+<a class="back-btn" href="./index.html">← 목록으로</a>
 
 <header>
   <div class="tag">바이오 생체유체역학 · Hemodynamics (by 남정훈 교수)</div>
