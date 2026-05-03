@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flow Rate 시뮬레이터 — 생체유체 10주차</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2330;
+    --border: #30363d;
+    --blue: #58a6ff;
+    --blue-dim: #1f3a5a;
+    --red: #f85149;
+    --red-dim: #3d1a1a;
+    --green: #3fb950;
+    --green-dim: #1a3a22;
+    --amber: #d29922;
+    --amber-dim: #3a2e10;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --text-dimmer: #484f58;
+    --blood: #c0392b;
+    --blood-bright: #e74c3c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .eng { font-family: 'Space Grotesk', sans-serif; }
+
+  header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  header .tag {
+    display: inline-block;
+    background: var(--blue-dim);
+    color: var(--blue);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-bottom: 0.7rem;
+    letter-spacing: 0.04em;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  header h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.3rem;
+  }
+
+  header p {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+  }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 6px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 8px 0;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-dim);
+    transition: all 0.2s;
+    border: none;
+    background: none;
+  }
+
+  .tab.active {
+    background: var(--blue-dim);
+    color: var(--blue);
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 1.3rem;
+    margin-bottom: 1rem;
+  }
+
+  .card-title {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 1rem;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .formula-display {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  .formula-display .eq {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--blue);
+    letter-spacing: 0.03em;
+  }
+
+  .formula-display .sub {
+    font-size: 0.75rem;
+    color: var(--text-dimmer);
+    margin-top: 6px;
+  }
+
+  .slider-group {
+    margin-bottom: 1rem;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0.7rem;
+  }
+
+  .slider-label {
+    font-size: 0.8rem;
+    min-width: 110px;
+    color: var(--text-dim);
+  }
+
+  .slider-label .sym {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.88rem;
+  }
+
+  input[type=range] {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    -webkit-appearance: none;
+    background: var(--border);
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--blue);
+    cursor: pointer;
+  }
+
+  .slider-val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    min-width: 64px;
+    text-align: right;
+    color: var(--blue);
+  }
+
+  .q-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.3rem;
+    margin-bottom: 1rem;
+  }
+
+  .q-label { font-size: 0.8rem; color: var(--text-dim); }
+
+  .q-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+
+  .q-ratio {
+    font-size: 0.78rem;
+    text-align: right;
+  }
+
+  .vessel-wrap {
+    position: relative;
+    height: 140px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  canvas#vesselCanvas { display: block; width: 100%; height: 100%; }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .stat-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+  }
+
+  .stat-card .s-label {
+    font-size: 0.72rem;
+    color: var(--text-dimmer);
+    margin-bottom: 4px;
+  }
+
+  .stat-card .s-val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .stenosis-bar-wrap {
+    height: 10px;
+    background: var(--border);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+
+  .stenosis-bar {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.3s, background 0.3s;
+  }
+
+  .quiz-q {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  .quiz-q .scenario {
+    font-size: 0.78rem;
+    color: var(--amber);
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: 0.04em;
+  }
+
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .choice-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem;
+    font-size: 0.85rem;
+    color: var(--text);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  .choice-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .choice-btn.correct { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+  .choice-btn.wrong { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+  .choice-btn:disabled { cursor: default; }
+
+  .feedback {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+    font-size: 0.83rem;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+    min-height: 60px;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+
+  .score-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .score-badge {
+    background: var(--amber-dim);
+    color: var(--amber);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 5px 14px;
+    border-radius: 20px;
+  }
+
+  .progress-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    margin: 0 12px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: var(--amber);
+    border-radius: 3px;
+    transition: width 0.4s;
+  }
+
+  .next-btn {
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--blue-dim);
+    border: 1px solid var(--blue);
+    border-radius: 8px;
+    color: var(--blue);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: 0.03em;
+    transition: all 0.2s;
+  }
+
+  .next-btn:hover { background: var(--blue); color: #fff; }
+  .next-btn:disabled { opacity: 0.4; cursor: default; }
+
+  .result-card {
+    text-align: center;
+    padding: 2rem 1rem;
+  }
+
+  .result-card .big-score {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--amber);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  .result-card .grade {
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+  }
+
+  .restart-btn {
+    background: var(--green-dim);
+    border: 1px solid var(--green);
+    border-radius: 8px;
+    color: var(--green);
+    padding: 0.8rem 2rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .restart-btn:hover { background: var(--green); color: #fff; }
+
+  footer {
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--text-dimmer);
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="tag">생체유체 10주차 · Hemodynamics</div>
+  <h1 class="eng">Flow Rate Simulator</h1>
+  <p>Q = πd⁴ΔP / 128μL — 슬라이더로 직접 체험하고 퀴즈로 확인</p>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('sim')">시뮬레이터</button>
+  <button class="tab" onclick="switchTab('stenosis')">협착 시뮬레이터</button>
+  <button class="tab" onclick="switchTab('quiz')">퀴즈</button>
+</div>
+
+<!-- ===== TAB 1: 시뮬레이터 ===== -->
+<div id="tab-sim" class="panel active">
+
+  <div class="card">
+    <div class="card-title eng">Hagen-Poiseuille Law</div>
+    <div class="formula-display">
+      <div class="eq eng">Q = πd⁴ΔP / 128μL</div>
+      <div class="sub">Q: 유량 &nbsp;|&nbsp; d: 내경 &nbsp;|&nbsp; ΔP: 압력차 &nbsp;|&nbsp; μ: 점도 &nbsp;|&nbsp; L: 혈관길이</div>
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-row">
+        <span class="slider-label"><span class="sym eng">d</span> 내경</span>
+        <input type="range" id="sl-d" min="1" max="10" value="5" step="0.1">
+        <span class="slider-val" id="vl-d">5.0 mm</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label"><span class="sym eng">ΔP</span> 압력차</span>
+        <input type="range" id="sl-dp" min="1" max="20" value="10" step="0.5">
+        <span class="slider-val" id="vl-dp">10 mmHg</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label"><span class="sym eng">μ</span> 혈액점도</span>
+        <input type="range" id="sl-mu" min="1" max="10" value="4" step="0.5">
+        <span class="slider-val" id="vl-mu">4.0 mPa·s</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-label"><span class="sym eng">L</span> 혈관길이</span>
+        <input type="range" id="sl-L" min="1" max="20" value="5" step="0.5">
+        <span class="slider-val" id="vl-L">5.0 cm</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="q-display">
+    <div>
+      <div class="q-label">혈류량 Q</div>
+      <div class="q-value" id="q-abs" style="color:var(--green);">—</div>
+    </div>
+    <div style="text-align:right;">
+      <div class="q-label">기준 대비</div>
+      <div class="q-value" id="q-ratio">—</div>
+      <div class="q-ratio" id="q-ratio-label" style="color:var(--text-dim);font-size:0.72rem;"></div>
+    </div>
+  </div>
+
+  <div class="vessel-wrap">
+    <canvas id="vesselCanvas"></canvas>
+  </div>
+
+  <div class="card" style="background:var(--surface2);border-color:var(--blue-dim);">
+    <div style="font-size:0.78rem;color:var(--blue);font-weight:600;margin-bottom:8px;font-family:'Space Grotesk',sans-serif;">Q ∝ d⁴ 체험해보기</div>
+    <div style="font-size:0.82rem;color:var(--text-dim);line-height:1.8;">
+      d 슬라이더를 <strong style="color:var(--text);">절반(2.5mm)</strong>으로 줄여보세요.<br>
+      Q가 <strong style="color:var(--red);">1/16</strong>로 감소합니다. d⁴ 의존성의 위력!
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB 2: 협착 시뮬레이터 ===== -->
+<div id="tab-stenosis" class="panel">
+
+  <div class="card">
+    <div class="card-title eng">Stenosis Simulator</div>
+    <div style="font-size:0.82rem;color:var(--text-dim);margin-bottom:1rem;line-height:1.7;">
+      협착(%) 슬라이더로 혈관이 좁아질 때 혈류량이 얼마나 감소하는지 체험하세요.
+    </div>
+
+    <div class="slider-row">
+      <span class="slider-label"><span class="sym" style="color:var(--red);">협착도</span></span>
+      <input type="range" id="sl-sten" min="0" max="95" value="0" step="1">
+      <span class="slider-val" id="vl-sten" style="color:var(--red);">0%</span>
+    </div>
+  </div>
+
+  <div class="vessel-wrap" style="height:160px;">
+    <canvas id="stenosisCanvas"></canvas>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="s-label">정상 내경</div>
+      <div class="s-val" style="color:var(--green);">5.0 mm</div>
+    </div>
+    <div class="stat-card">
+      <div class="s-label">현재 내경</div>
+      <div class="s-val" id="s-diameter" style="color:var(--red);">5.0 mm</div>
+    </div>
+    <div class="stat-card">
+      <div class="s-label">혈류량 (정상 대비)</div>
+      <div class="s-val" id="s-q" style="color:var(--amber);">100%</div>
+      <div class="stenosis-bar-wrap">
+        <div class="stenosis-bar" id="s-bar" style="width:100%;background:var(--green);"></div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="s-label">임상 상태</div>
+      <div class="s-val" id="s-status" style="font-size:0.85rem;color:var(--green);">정상</div>
+    </div>
+  </div>
+
+  <div class="card" style="background:var(--surface2);">
+    <div style="font-size:0.78rem;color:var(--amber);font-weight:600;margin-bottom:6px;font-family:'Space Grotesk',sans-serif;">임상 포인트</div>
+    <div id="s-comment" style="font-size:0.82rem;color:var(--text-dim);line-height:1.8;">
+      혈관이 막히지 않은 정상 상태입니다. Q ∝ d⁴ 에 의해 내경이 조금만 줄어도 유량이 급격히 감소합니다.
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB 3: 퀴즈 ===== -->
+<div id="tab-quiz" class="panel">
+
+  <div class="score-row">
+    <span class="score-badge" id="score-badge">0 / 0</span>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+    </div>
+    <span style="font-size:0.78rem;color:var(--text-dim);" id="q-counter">문제 1 / 8</span>
+  </div>
+
+  <div class="card" id="quiz-area">
+    <div class="quiz-q" id="quiz-question">
+      <div class="scenario" id="quiz-scenario"></div>
+      <div id="quiz-text"></div>
+    </div>
+    <div class="choices" id="quiz-choices"></div>
+    <div class="feedback" id="quiz-feedback">답을 선택하세요.</div>
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()" disabled>다음 문제 →</button>
+  </div>
+
+  <div class="card result-card" id="result-area" style="display:none;">
+    <div class="big-score" id="final-score">0</div>
+    <div class="grade" id="final-grade"></div>
+    <button class="restart-btn" onclick="restartQuiz()">다시 풀기</button>
+  </div>
+</div>
+
+<footer>
+  AI-바이오분석특화연구소 (산학협력단 부설) · 재능대학교 바이오테크과 · 생체유체 강의자료
+</footer>
+
+<script>
+const TOTAL_Q = 8;
+let score = 0, qIdx = 0, answered = false;
+
+const questions = [
+  {
+    scenario: "Q ∝ d⁴ 개념",
+    text: "혈관 내경(d)이 정상의 절반(50%)으로 줄어들면, 혈류량 Q는 어떻게 변하는가?",
+    choices: ["1/2로 감소", "1/4로 감소", "1/8로 감소", "1/16로 감소"],
+    answer: 3,
+    feedback: "정답! Q ∝ d⁴이므로 d가 1/2이 되면 Q = (1/2)⁴ = 1/16로 감소합니다. 내경이 절반만 줄어도 혈류량은 무려 93.75%나 감소하는 것입니다."
+  },
+  {
+    scenario: "점도와 유량",
+    text: "당뇨병 환자에서 혈액 점도(μ)가 2배 증가했다면, 혈류량 Q는 어떻게 변하는가? (다른 조건 동일)",
+    choices: ["2배 증가", "변화 없음", "1/2로 감소", "1/4로 감소"],
+    answer: 2,
+    feedback: "정답! Q ∝ 1/μ 이므로 점도가 2배가 되면 Q는 절반으로 줄어듭니다. 당뇨·고지혈증에서 혈액이 끈적해지면 혈류량이 감소하는 이유입니다."
+  },
+  {
+    scenario: "압력차와 유량",
+    text: "심박출량이 증가하여 압력차(ΔP)가 2배가 되었다면, 혈류량 Q는?",
+    choices: ["4배 증가", "2배 증가", "변화 없음", "1/2로 감소"],
+    answer: 1,
+    feedback: "정답! Q ∝ ΔP 이므로 압력차가 2배가 되면 Q도 2배 증가합니다. 운동 시 심장이 더 강하게 펌프하여 혈류량이 늘어나는 원리입니다."
+  },
+  {
+    scenario: "No-slip condition",
+    text: "혈관 벽면(r = R₀)에서 혈액의 속도는?",
+    choices: ["최대 (V_max)", "평균 속도", "0 (정지)", "음수 (역류)"],
+    answer: 2,
+    feedback: "정답! No-slip boundary condition에 의해 벽면에 접촉한 유체의 속도는 항상 0입니다. 유체 분자가 벽면에 분자간 인력으로 달라붙기 때문입니다."
+  },
+  {
+    scenario: "90% 협착",
+    text: "관상동맥이 90% 협착(면적비 A₁/A₂ = 10)되었을 때 혈압이 120 mmHg에서 약 얼마로 떨어지는가?",
+    choices: ["약 90 mmHg", "약 60 mmHg", "약 22 mmHg", "약 5 mmHg"],
+    answer: 2,
+    feedback: "정답! 베르누이 방정식 적용 시 V₂ = 10 × V₁ = 5 m/s가 되어 P₂ ≈ 22 mmHg로 급락합니다. 이 압력에서는 심근 허혈이 발생합니다."
+  },
+  {
+    scenario: "포물선 속도 분포",
+    text: "층류(laminar flow) 조건에서 혈관 내 속도 분포의 형태는?",
+    choices: ["균일 분포 (flat profile)", "포물선형 (parabolic)", "삼각형", "불규칙 (난류형)"],
+    answer: 1,
+    feedback: "정답! 층류 조건에서 Hagen-Poiseuille 해를 구하면 v(r) = V_max × [1-(r/R₀)²]로 포물선형이 됩니다. 중심이 가장 빠르고 벽면에서 0입니다."
+  },
+  {
+    scenario: "혈관 길이",
+    text: "혈관 길이(L)가 2배 길어지면 혈류량 Q는?",
+    choices: ["2배 증가", "변화 없음", "1/2로 감소", "1/4로 감소"],
+    answer: 2,
+    feedback: "정답! Q ∝ 1/L 이므로 혈관이 길어질수록 마찰 저항이 증가하여 유량이 감소합니다. 긴 혈관일수록 같은 유량을 유지하려면 더 높은 압력이 필요합니다."
+  },
+  {
+    scenario: "레이놀즈 수",
+    text: "정상 혈관에서 혈류가 대부분 층류(laminar)인 이유는?",
+    choices: ["혈액이 뉴턴 유체이기 때문", "Re < 2,100 이기 때문", "혈압이 높기 때문", "혈관이 직선이기 때문"],
+    answer: 1,
+    feedback: "정답! 레이놀즈 수 Re = ρVd/μ 가 대부분의 혈관에서 2,100 미만으로 유지되므로 층류가 발생합니다. 협착이나 판막 이상 시 Re가 증가하여 난류(심잡음)가 생깁니다."
+  }
+];
+
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach((b,i) => b.classList.toggle('active', ['sim','stenosis','quiz'][i] === t));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + t).classList.add('active');
+}
+
+// ── 시뮬레이터 ──
+let baseQ = null;
+
+function calcQ(d, dp, mu, L) {
+  return (Math.PI * Math.pow(d, 4) * dp) / (128 * mu * L);
+}
+
+function updateSim() {
+  const d  = parseFloat(document.getElementById('sl-d').value);
+  const dp = parseFloat(document.getElementById('sl-dp').value);
+  const mu = parseFloat(document.getElementById('sl-mu').value);
+  const L  = parseFloat(document.getElementById('sl-L').value);
+
+  document.getElementById('vl-d').textContent  = d.toFixed(1) + ' mm';
+  document.getElementById('vl-dp').textContent = dp.toFixed(1) + ' mmHg';
+  document.getElementById('vl-mu').textContent = mu.toFixed(1) + ' mPa·s';
+  document.getElementById('vl-L').textContent  = L.toFixed(1) + ' cm';
+
+  const q = calcQ(d, dp, mu, L);
+  if (baseQ === null) baseQ = q;
+  const ratio = q / baseQ;
+
+  document.getElementById('q-abs').textContent = (q * 1e6).toFixed(1) + ' μL/s';
+
+  const ratioEl = document.getElementById('q-ratio');
+  const labelEl = document.getElementById('q-ratio-label');
+
+  if (Math.abs(ratio - 1) < 0.02) {
+    ratioEl.textContent = '기준';
+    ratioEl.style.color = 'var(--text-dim)';
+    labelEl.textContent = '';
+  } else if (ratio > 1) {
+    ratioEl.textContent = '× ' + ratio.toFixed(2);
+    ratioEl.style.color = 'var(--green)';
+    labelEl.textContent = '기준보다 증가';
+  } else {
+    ratioEl.textContent = '× ' + ratio.toFixed(3);
+    ratioEl.style.color = 'var(--red)';
+    labelEl.textContent = '기준보다 감소';
+  }
+
+  drawVessel(d, dp, mu);
+}
+
+function drawVessel(d, dp, mu) {
+  const canvas = document.getElementById('vesselCanvas');
+  const W = canvas.parentElement.offsetWidth;
+  const H = canvas.parentElement.offsetHeight;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  const cx = 90, cy = H / 2;
+  const R = Math.min((d / 10) * (H * 0.38), H * 0.42);
+  const vScale = (dp / mu) * (W * 0.32);
+  const Vmax = Math.min(vScale, W * 0.55);
+
+  ctx.fillStyle = '#1c2330';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.fillStyle = '#30363d';
+  ctx.fillRect(0, cy - R - 18, W, 18);
+  ctx.fillRect(0, cy + R, W, 18);
+
+  ctx.fillStyle = '#21262d';
+  ctx.fillRect(0, cy - R, W, R * 2);
+
+  const pts = [];
+  for (let i = 0; i <= 60; i++) {
+    const r = -R + (2 * R * i / 60);
+    const cyy = cy + r;
+    const ratio = r / R;
+    const v = Vmax * (1 - ratio * ratio);
+    pts.push([cx + v, cyy]);
+  }
+  pts.push([cx, cy + R]);
+  pts.push([cx, cy - R]);
+
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(192,57,43,0.18)';
+  ctx.fill();
+  ctx.strokeStyle = '#58a6ff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  const rows = 10;
+  for (let i = 0; i <= rows; i++) {
+    const r = -R + (2 * R * i / rows);
+    const cyy = cy + r;
+    const ratio = r / R;
+    const v = Vmax * (1 - ratio * ratio);
+    const len = Math.max(v, 0);
+
+    if (len > 6) {
+      const intensity = len / Vmax;
+      ctx.strokeStyle = intensity > 0.6 ? '#c0392b' : intensity > 0.3 ? '#e74c3c' : '#f1948a';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(cx, cyy);
+      ctx.lineTo(cx + len - 5, cyy);
+      ctx.stroke();
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.beginPath();
+      ctx.moveTo(cx + len - 5, cyy - 4);
+      ctx.lineTo(cx + len + 1, cyy);
+      ctx.lineTo(cx + len - 5, cyy + 4);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = '#f85149';
+      ctx.beginPath();
+      ctx.arc(cx, cyy, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  ctx.fillStyle = '#d29922';
+  ctx.font = '500 11px Space Grotesk, monospace';
+  ctx.fillText('v = 0', cx + 4, cy - R - 4);
+  ctx.fillText('v = 0', cx + 4, cy + R + 14);
+  ctx.fillStyle = '#58a6ff';
+  ctx.fillText('V_max', cx + Vmax - 40, cy - 5);
+
+  ctx.strokeStyle = '#30363d';
+  ctx.lineWidth = 0.5;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.moveTo(0, cy);
+  ctx.lineTo(W, cy);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+['sl-d','sl-dp','sl-mu','sl-L'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateSim);
+});
+
+// ── 협착 시뮬레이터 ──
+function updateStenosis() {
+  const sten = parseInt(document.getElementById('sl-sten').value);
+  document.getElementById('vl-sten').textContent = sten + '%';
+
+  const dNorm = 5.0;
+  const dSten = dNorm * Math.sqrt(1 - sten / 100);
+  const qRatio = Math.pow(dSten / dNorm, 4);
+  const qPct = (qRatio * 100).toFixed(1);
+
+  document.getElementById('s-diameter').textContent = dSten.toFixed(2) + ' mm';
+  document.getElementById('s-q').textContent = qPct + '%';
+
+  const bar = document.getElementById('s-bar');
+  bar.style.width = qPct + '%';
+  bar.style.background = qRatio > 0.6 ? 'var(--green)' : qRatio > 0.25 ? 'var(--amber)' : 'var(--red)';
+
+  const statusEl = document.getElementById('s-status');
+  const commentEl = document.getElementById('s-comment');
+
+  if (sten < 30) {
+    statusEl.textContent = '정상';
+    statusEl.style.color = 'var(--green)';
+    commentEl.innerHTML = '정상 혈류 상태입니다. 증상이 없고 혈류량도 충분합니다.';
+  } else if (sten < 50) {
+    statusEl.textContent = '경미한 협착';
+    statusEl.style.color = 'var(--blue)';
+    commentEl.innerHTML = '경도 협착입니다. 아직 증상은 없지만 Q ∝ d⁴에 의해 <strong style="color:var(--amber);">혈류량이 눈에 띄게 감소</strong>하기 시작합니다.';
+  } else if (sten < 70) {
+    statusEl.textContent = '유의한 협착';
+    statusEl.style.color = 'var(--amber)';
+    commentEl.innerHTML = '운동 시 흉통(<strong style="color:var(--amber);">안정형 협심증</strong>)이 나타날 수 있습니다. 혈류량이 정상의 절반 이하로 감소했습니다.';
+  } else if (sten < 90) {
+    statusEl.textContent = '심각한 협착';
+    statusEl.style.color = 'var(--red)';
+    commentEl.innerHTML = '<strong style="color:var(--red);">불안정 협심증</strong> 위험 구간입니다. 혈류량이 급격히 감소하여 심근 허혈이 발생할 수 있습니다.';
+  } else {
+    statusEl.textContent = '거의 완전 폐색';
+    statusEl.style.color = 'var(--red)';
+    commentEl.innerHTML = '<strong style="color:var(--red);">급성 심근경색(AMI)</strong> 위험! 베르누이 법칙에 의해 협착부 혈압이 22 mmHg 이하로 급락합니다.';
+  }
+
+  drawStenosis(sten, qRatio);
+}
+
+function drawStenosis(sten, qRatio) {
+  const canvas = document.getElementById('stenosisCanvas');
+  const W = canvas.parentElement.offsetWidth;
+  const H = canvas.parentElement.offsetHeight;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  ctx.fillStyle = '#1c2330';
+  ctx.fillRect(0, 0, W, H);
+
+  const cy = H / 2;
+  const R0 = H * 0.28;
+  const stenFrac = sten / 100;
+  const narrowR = R0 * Math.sqrt(1 - stenFrac);
+  const narrowX = W * 0.55;
+  const narrowW = W * 0.12;
+
+  const topPath = new Path2D();
+  topPath.moveTo(0, cy - R0);
+  topPath.lineTo(narrowX - narrowW, cy - R0);
+  topPath.quadraticCurveTo(narrowX, cy - R0, narrowX, cy - narrowR);
+  topPath.quadraticCurveTo(narrowX, cy - R0, narrowX + narrowW, cy - R0);
+  topPath.lineTo(W, cy - R0);
+  topPath.lineTo(W, cy - R0 - 20);
+  topPath.lineTo(0, cy - R0 - 20);
+  topPath.closePath();
+
+  const botPath = new Path2D();
+  botPath.moveTo(0, cy + R0);
+  botPath.lineTo(narrowX - narrowW, cy + R0);
+  botPath.quadraticCurveTo(narrowX, cy + R0, narrowX, cy + narrowR);
+  botPath.quadraticCurveTo(narrowX, cy + R0, narrowX + narrowW, cy + R0);
+  botPath.lineTo(W, cy + R0);
+  botPath.lineTo(W, cy + R0 + 20);
+  botPath.lineTo(0, cy + R0 + 20);
+  botPath.closePath();
+
+  ctx.fillStyle = '#30363d';
+  ctx.fill(topPath);
+  ctx.fill(botPath);
+
+  if (sten > 5) {
+    ctx.fillStyle = 'rgba(192,57,43,0.5)';
+    const plaque = new Path2D();
+    plaque.moveTo(narrowX - narrowW, cy - R0);
+    plaque.quadraticCurveTo(narrowX, cy - R0, narrowX, cy - narrowR);
+    plaque.quadraticCurveTo(narrowX, cy - R0, narrowX + narrowW, cy - R0);
+    ctx.fill(plaque);
+    const plaque2 = new Path2D();
+    plaque2.moveTo(narrowX - narrowW, cy + R0);
+    plaque2.quadraticCurveTo(narrowX, cy + R0, narrowX, cy + narrowR);
+    plaque2.quadraticCurveTo(narrowX, cy + R0, narrowX + narrowW, cy + R0);
+    ctx.fill(plaque2);
+  }
+
+  ctx.fillStyle = 'rgba(192,57,43,0.12)';
+  ctx.fillRect(0, cy - R0, W, R0 * 2);
+
+  const numArrows = 6;
+  for (let i = 0; i <= numArrows; i++) {
+    const r = -R0 + (2 * R0 * i / numArrows);
+    const ratio = r / R0;
+    const cyy = cy + r;
+    const v = qRatio * 80 * (1 - ratio * ratio);
+    if (v < 3) continue;
+    const x1 = 20, x2 = x1 + v;
+    ctx.strokeStyle = v > 40 ? '#c0392b' : '#e74c3c';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x1, cyy);
+    ctx.lineTo(Math.min(x2 - 4, narrowX - narrowW - 4), cyy);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = '#f85149';
+  ctx.font = '500 11px Space Grotesk, monospace';
+  ctx.fillText('plaque', narrowX - 16, cy - R0 + (R0 - narrowR) / 2 + 4);
+
+  ctx.strokeStyle = '#58a6ff';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  ctx.moveTo(0, cy);
+  ctx.lineTo(W, cy);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+document.getElementById('sl-sten').addEventListener('input', updateStenosis);
+
+// ── 퀴즈 ──
+function loadQuestion() {
+  if (qIdx >= TOTAL_Q) {
+    showResult(); return;
+  }
+  answered = false;
+  const q = questions[qIdx];
+  document.getElementById('quiz-scenario').textContent = q.scenario;
+  document.getElementById('quiz-text').textContent = q.text;
+  document.getElementById('quiz-feedback').textContent = '답을 선택하세요.';
+  document.getElementById('quiz-feedback').style.borderColor = 'var(--border)';
+  document.getElementById('next-btn').disabled = true;
+  document.getElementById('q-counter').textContent = '문제 ' + (qIdx + 1) + ' / ' + TOTAL_Q;
+  document.getElementById('progress-bar').style.width = (qIdx / TOTAL_Q * 100) + '%';
+
+  const choicesEl = document.getElementById('quiz-choices');
+  choicesEl.innerHTML = '';
+  q.choices.forEach((c, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = c;
+    btn.onclick = () => selectAnswer(i);
+    choicesEl.appendChild(btn);
+  });
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[qIdx];
+  const btns = document.querySelectorAll('.choice-btn');
+  btns.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.answer) b.classList.add('correct');
+    else if (i === idx) b.classList.add('wrong');
+  });
+  const fb = document.getElementById('quiz-feedback');
+  if (idx === q.answer) {
+    score++;
+    fb.textContent = '✓ ' + q.feedback;
+    fb.style.borderColor = 'var(--green)';
+  } else {
+    fb.textContent = '✗ ' + q.feedback;
+    fb.style.borderColor = 'var(--red)';
+  }
+  document.getElementById('score-badge').textContent = score + ' / ' + (qIdx + 1);
+  document.getElementById('next-btn').disabled = false;
+}
+
+function nextQuestion() {
+  qIdx++;
+  if (qIdx >= TOTAL_Q) { showResult(); return; }
+  loadQuestion();
+}
+
+function showResult() {
+  document.getElementById('quiz-area').style.display = 'none';
+  document.getElementById('result-area').style.display = 'block';
+  document.getElementById('progress-bar').style.width = '100%';
+  document.getElementById('final-score').textContent = score + ' / ' + TOTAL_Q;
+  const pct = score / TOTAL_Q;
+  const grade = pct >= 0.875 ? '🎯 우수 — 혈역학 완벽 이해!' :
+                pct >= 0.625 ? '👍 양호 — 핵심 개념은 파악!' :
+                               '📚 복습 필요 — 강의 스크립트를 다시 보세요.';
+  document.getElementById('final-grade').textContent = grade;
+}
+
+function restartQuiz() {
+  score = 0; qIdx = 0; answered = false;
+  document.getElementById('score-badge').textContent = '0 / 0';
+  document.getElementById('quiz-area').style.display = 'block';
+  document.getElementById('result-area').style.display = 'none';
+  loadQuestion();
+}
+
+updateSim();
+updateStenosis();
+loadQuestion();
+</script>
+</body>
+</html>
